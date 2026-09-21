@@ -113,17 +113,20 @@ def _seed_tenants() -> list[str]:
     from clinic_mock.config import settings
 
     raw = settings.mock_auth.API_KEYS
-    keys: list[str] = []
+    tenants: list[str] = []
     for entry in raw.split(","):
         e = entry.strip()
         if not e:
             continue
         if ":" in e:
-            _, e = (p.strip() for p in e.split(":", 1))
-        keys.append(e)
-    if not keys:
-        keys = ["sk_unset"]
-    tenants = [derive_tenant_id(k) for k in keys]
+            tenant, key = (part.strip() for part in e.split(":", 1))
+        else:
+            key = e
+            tenant = derive_tenant_id(key)
+        if key.startswith("sk_") and tenant:
+            tenants.append(tenant)
+    if not tenants:
+        tenants = [derive_tenant_id("sk_unset")]
     seen: set[str] = set()
     unique: list[str] = []
     for t in tenants:
