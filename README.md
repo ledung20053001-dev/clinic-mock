@@ -206,6 +206,117 @@ for post-test assertions.
 
 ---
 
+## Seed Data
+
+The data the mock starts with lives in JSON under
+[`src/clinic_mock/data/`](src/clinic_mock/data/), not in code. The mock loads it
+on startup, on `/_harness/seed` and on `/_harness/reset`. Adding a doctor, a
+clinic, a patient or an appointment means editing data, and no Python changes.
+
+| File | Holds |
+| :--- | :--- |
+| `clinics.json` | Clinics: id, name, city, district |
+| `departments.json` | Specialties; `name` is what slots and appointments carry |
+| `providers.json` | Doctors, each at one clinic in one department |
+| `schedules.json` | Weekly working hours; open slots are generated from them |
+| `patients.json` | People the phone lookup finds (`verify` is what the bot checks) |
+| `slots.json` | One-off open slots at fixed times |
+| `appointments.json` | Existing bookings |
+
+The stock seed has:
+
+- **Catalog:** 6 clinics, 16 departments and 25 providers.
+- **Per API key:** 35 patients, about 2,700 open slots over the next 21 days,
+  and 14 appointments across five clinics in the statuses SCHEDULED, CONFIRMED,
+  BOOKED, UNREACHABLE and CANCELLED.
+- **Shared by every key:** the contract fixtures `pt_3391`, `apt_00417` and
+  `slot_91d2`.
+
+`cl_vinmec` has no other open slot, because the Appendix A reschedule depends
+on `slot_91d2` being the only offer. Run `python -m clinic_mock.dataset` to
+see today's numbers.
+
+### Scope and profile
+
+Clinics, departments and providers are always loaded. Every other row takes two
+optional keys:
+
+- **`scope`**: `tenant` (the default) copies the row once per API key and
+  appends the key's 4-character hash to its id (`apt_seed_05_f970`), so keys
+  never see each other's writes. `shared` seeds one copy that every key sees.
+- **`profile`**: `base` (the default) is the stock seed and is always loaded.
+  A row in any other profile is seeded only when `MOCK_SEED_PROFILES` names it.
+  `demo` adds the callbot console's call list (`apt_demo_1` … `apt_demo_10`)
+  and near-term `cl_vinmec` availability across six departments.
+
+### Dates stay current
+
+A schedule generates slots from today for `MOCK_SEED_HORIZON_DAYS`. An
+appointment can name a slot relative to today instead of a date:
+
+```json
+{"appointment_id": "apt_seed_05", "patient_id": "p_sample_18", "provider_id": "pr_301",
+ "status": "SCHEDULED", "working_day": 1, "time": "10:00"}
+```
+
+That is `pr_301`'s 10:00 slot on the first day after today that `pr_301`
+works. The booking takes that slot out of the open list, unless it is
+`CANCELLED`, and `POST /cancel` puts it back under the same id. The contract
+fixtures and the upstream fixed-date rows use fixed times and never move.
+Where a slot or appointment with a fixed time and a generated slot overlap for
+the same doctor, the fixed row wins.
+
+### Adding a doctor
+
+Add the doctor to `providers.json` and their hours to `schedules.json`:
+
+```json
+{"id": "pr_305", "name": "Bác sĩ Trần Minh Khôi", "clinic_id": "c_003", "department": "Mắt"}
+```
+
+```json
+{"provider_id": "pr_305", "weekdays": [0, 1, 2, 3, 4],
+ "sessions": [["08:00", "11:30"], ["13:30", "16:30"]], "slot_minutes": 30}
+```
+
+`weekdays` counts from Monday = 0. Times are clinic-local (`+07:00`) unless
+`utc_offset` says otherwise. A schedule with both `valid_from` and `valid_to`
+is a fixed block; any other schedule rolls with the calendar.
+
+### Validation
+
+A dataset is checked in full when it loads, and the mock refuses to start with
+a bad one. The check covers:
+
+- formats per record: phones, dates, clock times, statuses and reason codes;
+- misspelt keys;
+- references between files;
+- duplicate ids or phones;
+- a doctor double-booked by two schedules;
+- an appointment whose time is not on its doctor's schedule.
+
+Every problem is listed at once. Records may carry a `"note"`, because JSON has
+no comments.
+
+```bash
+uv run python -m clinic_mock.dataset                      # packaged dataset, today
+uv run python -m clinic_mock.dataset path/to/dataset --profiles base,demo
+```
+
+### Settings
+
+| Variable | Default | Meaning |
+| :--- | :--- | :--- |
+| `MOCK_SEED_DATA_DIR` | packaged `data/` | Serve another dataset, such as a larger one for load tests |
+| `MOCK_SEED_PROFILES` | `base` | Profiles to seed, comma-separated; `base` is always included |
+| `MOCK_SEED_HORIZON_DAYS` | `21` | Days of generated availability, counting today |
+
+Loading is cached per directory. The rows for a given day are built once and
+reused on every reset, so a larger dataset makes startup slower but not the
+per-test reseed.
+
+---
+
 ## Phone Numbers
 
 Phones are VN-local 10-digit, validated as
@@ -269,8 +380,11 @@ src/clinic_mock/
 ├── logger.py          # loguru setup
 ├── routes.py          # all v1 + harness + health routes
 ├── schemas.py         # Pydantic models matching contract §2.2 + Appendix A
-├── store.py           # in-memory db + canonical + per-tenant seed fixtures
-└── tracing.py         # Langfuse + FastAPI OTel instrumentation
+├── dataset.py         # seed dataset: record types, loading, validation, CLI
+├── seeding.py         # dataset -> one day's rows (schedules -> open slots)
+├── store.py           # in-memory db; seed_default() fills it from the dataset
+├── tracing.py         # Langfuse + FastAPI OTel instrumentation
+└── data/              # the seed dataset, one JSON file per entity (see "Seed Data")
 ```
 
 The product contract at

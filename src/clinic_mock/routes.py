@@ -247,13 +247,22 @@ def list_slots(
     if (t - f) > timedelta(days=14):
         raise validation_error("'from'..'to' window must be <= 14 days.")
 
-    def in_window(slot: Slot) -> bool:
-        s = datetime.fromisoformat(slot.start_time)
-        return slot.tenant_id in tenants and slot.clinic_id == clinic_id and f <= s < t
-
-    matched = [s.model_dump() for s in db.slots.values() if in_window(s)]
+    # The cheap checks first: most slots belong to another key or clinic, and
+    # schedules generate thousands. Earliest first, so offset cursors page stably.
+    matched: list[tuple[datetime, str, Slot]] = []
+    for slot in db.slots.values():
+        if slot.tenant_id not in tenants or slot.clinic_id != clinic_id:
+            continue
+        starts = datetime.fromisoformat(slot.start_time)
+        if f <= starts < t:
+            matched.append((starts, slot.slot_id, slot))
+    matched.sort(key=lambda row: (row[0], row[1]))
     page, next_cursor, has_more = paginate(matched, cursor, limit)
-    return {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+    return {
+        "data": [slot.model_dump() for _, _, slot in page],
+        "next_cursor": next_cursor,
+        "has_more": has_more,
+    }
 
 
 # ===== Appointments =====

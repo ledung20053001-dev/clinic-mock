@@ -94,7 +94,7 @@ Finds patient records by phone. Used during inbound calls (§1.1.9) to identify 
 #### `GET /v1/slots`
 Retrieves genuinely open, bookable time slots. The **only** legal source for presenting availability to a caller (§1.1.6).
 * **Query:** `clinic_id` (required), `from` (RFC 3339, required), `to` (RFC 3339, required, `to > from`, `to - from ≤ 14d`), optional `cursor`, `limit`.
-* **Response `200 OK`:** Paginated `Slot` envelope. Times may carry a `±HH:MM` offset (`+07:00` for Vietnam).
+* **Response `200 OK`:** Paginated `Slot` envelope, earliest `start_time` first (ties by `slot_id`), so cursors page stably. Times may carry a `±HH:MM` offset (`+07:00` for Vietnam).
 
 ### 3.2 Booking & Reading
 
@@ -187,6 +187,8 @@ Per-tenant scoring-harness endpoints. **Reserved for the harness** — contract 
 | `POST` | `/_harness/seed` | Reset and seed canonical + per-tenant fixtures. |
 | `POST` | `/_harness/reset` | Flush and re-seed. |
 | `POST` | `/_harness/time-travel` | Advance the system clock by `seconds` (signed). |
+
+What a seed contains comes from the seed dataset (JSON under `src/clinic_mock/data`), not from code. See the README, "Seed Data". Schedules generate open slots from today for `MOCK_SEED_HORIZON_DAYS`, so a seed on a later day holds later slots. The contract fixtures and the upstream fixed-date rows never move.
 
 ## 5. Data Models
 
@@ -334,8 +336,11 @@ src/clinic_mock/
 ├── logger.py          # loguru setup
 ├── routes.py          # all v1 + harness + health routes
 ├── schemas.py         # Pydantic models matching contract §2.2 + Appendix A
-├── store.py           # in-memory db + canonical + per-tenant seed fixtures
-└── tracing.py         # Langfuse OTel instrumentation
+├── dataset.py         # seed dataset: record types, loading, validation, CLI
+├── seeding.py         # dataset -> one day's rows (schedules -> open slots)
+├── store.py           # in-memory db; seed_default() fills it from the dataset
+├── tracing.py         # Langfuse OTel instrumentation
+└── data/              # the seed dataset, one JSON file per entity
 ```
 
 `docs/APIs.md` is the source of truth for the contract; the code is the

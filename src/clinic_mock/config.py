@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,12 +51,29 @@ class MockAuthSettings(BaseSettings):
     API_KEYS: str = "sk_dev_demo"
 
 
+class MockSeedSettings(BaseSettings):
+    """Which seed dataset the mock starts from (README "Seed data")."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="MOCK_SEED_", env_file=".env", extra="ignore"
+    )
+
+    # Directory holding the dataset's JSON files; empty means the packaged one.
+    DATA_DIR: str = ""
+    # Comma-separated profiles to seed. "base" is the stock seed; "demo" adds the
+    # callbot console's call list and near-term cl_vinmec availability.
+    PROFILES: str = "base"
+    # How many days ahead weekly schedules generate open slots, counting today.
+    HORIZON_DAYS: int = Field(default=21, ge=1, le=366)
+
+
 class Settings:
     def __init__(self) -> None:
         self.app = AppSettings()
         self.log = LogSettings()
         self.langfuse = LangfuseSettings()
         self.mock_auth = MockAuthSettings()
+        self.seed = MockSeedSettings()
 
 
 settings = Settings()

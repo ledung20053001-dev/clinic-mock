@@ -1,0 +1,152 @@
+[
+  {
+    "id": "pr_456",
+    "name": "Bác sĩ Nguyễn Văn An",
+    "clinic_id": "c_001",
+    "department": "Nội tổng quát"
+  },
+  {
+    "id": "pr_789",
+    "name": "Bác sĩ Trần Thị Bình",
+    "clinic_id": "c_002",
+    "department": "Nhi khoa"
+  },
+  {
+    "id": "pr_vinmec_1",
+    "name": "Bác sĩ Phạm Thị Cúc",
+    "clinic_id": "cl_vinmec",
+    "department": "Tim mạch"
+  },
+  {
+    "id": "pr_101",
+    "name": "Bác sĩ Lê Minh Hoàng",
+    "clinic_id": "c_001",
+    "department": "Tai Mũi Họng"
+  },
+  {
+    "id": "pr_102",
+    "name": "Bác sĩ Vũ Ngọc Anh",
+    "clinic_id": "c_001",
+    "department": "Da liễu"
+  },
+  {
+    "id": "pr_201",
+    "name": "Bác sĩ Đỗ Thu Hương",
+    "clinic_id": "c_002",
+    "department": "Sản phụ khoa"
+  },
+  {
+    "id": "pr_202",
+    "name": "Bác sĩ Bùi Quang Huy",
+    "clinic_id": "c_002",
+    "department": "Cơ xương khớp"
+  },
+  {
+    "id": "pr_vinmec_2",
+    "name": "Bác sĩ Hoàng Minh Tuấn",
+    "clinic_id": "cl_vinmec",
+    "department": "Nội tổng quát"
+  },
+  {
+    "id": "pr_vinmec_3",
+    "name": "Bác sĩ Nguyễn Thu Trang",
+    "clinic_id": "cl_vinmec",
+    "department": "Nhi khoa"
+  },
+  {
+    "id": "pr_vinmec_4",
+    "name": "Bác sĩ Lê Quốc Bảo",
+    "clinic_id": "cl_vinmec",
+    "department": "Tai Mũi Họng"
+  },
+  {
+    "id": "pr_vinmec_5",
+    "name": "Bác sĩ Trịnh Hải Yến",
+    "clinic_id": "cl_vinmec",
+    "department": "Sản phụ khoa"
+  },
+  {
+    "id": "pr_vinmec_6",
+    "name": "Bác sĩ Đặng Văn Khải",
+    "clinic_id": "cl_vinmec",
+    "department": "Tiêu hóa"
+  },
+  {
+    "id": "pr_103",
+    "name": "Bác sĩ Phan Thị Hạnh",
+    "clinic_id": "c_001",
+    "department": "Mắt"
+  },
+  {
+    "id": "pr_104",
+    "name": "Bác sĩ Ngô Đức Thắng",
+    "clinic_id": "c_001",
+    "department": "Răng Hàm Mặt"
+  },
+  {
+    "id": "pr_203",
+    "name": "Bác sĩ Mai Thanh Tùng",
+    "clinic_id": "c_002",
+    "department": "Tiêu hóa"
+  },
+  {
+    "id": "pr_204",
+    "name": "Bác sĩ Chu Thị Ngọc",
+    "clinic_id": "c_002",
+    "department": "Nội tiết"
+  },
+  {
+    "id": "pr_301",
+    "name": "Bác sĩ Tạ Minh Đức",
+    "clinic_id": "c_003",
+    "department": "Nội tổng quát"
+  },
+  {
+    "id": "pr_302",
+    "name": "Bác sĩ Lương Thị Hoa",
+    "clinic_id": "c_003",
+    "department": "Nhi khoa"
+  },
+  {
+    "id": "pr_303",
+    "name": "Bác sĩ Kiều Văn Sơn",
+    "clinic_id": "c_003",
+    "department": "Hô hấp"
+  },
+  {
+    "id": "pr_vsc_1",
+    "name": "Bác sĩ Vương Thị Lan",
+    "clinic_id": "cl_vinmec_smartcity",
+    "department": "Thần kinh"
+  },
+  {
+    "id": "pr_vsc_2",
+    "name": "Bác sĩ Đinh Công Minh",
+    "clinic_id": "cl_vinmec_smartcity",
+    "department": "Tim mạch"
+  },
+  {
+    "id": "pr_vsc_3",
+    "name": "Bác sĩ Hà Thu Phương",
+    "clinic_id": "cl_vinmec_smartcity",
+    "department": "Dinh dưỡng"
+  },
+  {
+    "id": "pr_vcp_1",
+    "name": "Bác sĩ Trương Gia Huy",
+    "clinic_id": "cl_vinmec_centralpark",
+    "department": "Tiết niệu"
+  },
+  {
+    "id": "pr_vcp_2",
+    "name": "Bác sĩ Lâm Ngọc Hân",
+    "clinic_id": "cl_vinmec_centralpark",
+    "department": "Da liễu"
+  },
+  {
+    "id": "pr_vcp_3",
+    "name": "Bác sĩ Huỳnh Tấn Phát",
+    "clinic_id": "cl_vinmec_centralpark",
+    "department": "Phục hồi chức năng"
+  }
+]

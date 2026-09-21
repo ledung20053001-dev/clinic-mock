@@ -1,0 +1,242 @@
+[
+  {
+    "appointment_id": "apt_00417",
+    "slot_id": "slot_77aa",
+    "provider_id": "pr_vinmec_1",
+    "status": "SCHEDULED",
+    "clinic_id": "cl_vinmec",
+    "starts_at": "2026-10-14T15:30:00+07:00",
+    "ends_at": "2026-10-14T16:00:00+07:00",
+    "department": "Nội tổng quát",
+    "patient_id": "pt_3391",
+    "attempt_count": 0,
+    "version": 3,
+    "scope": "shared",
+    "note": "Contract appointment (Listing 3). Holds slot_77aa, which is not open until a cancel or reschedule frees it."
+  },
+  {
+    "appointment_id": "apt_seed_01",
+    "patient_id": "p_12345",
+    "provider_id": "pr_103",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "08:00"
+  },
+  {
+    "appointment_id": "apt_seed_02",
+    "patient_id": "p_67890",
+    "provider_id": "pr_104",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "09:30"
+  },
+  {
+    "appointment_id": "apt_seed_03",
+    "patient_id": "p_sample_01",
+    "provider_id": "pr_203",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "14:00"
+  },
+  {
+    "appointment_id": "apt_seed_04",
+    "patient_id": "p_sample_02",
+    "provider_id": "pr_204",
+    "status": "CONFIRMED",
+    "working_day": 2,
+    "time": "08:30",
+    "confirmed_via": "sms",
+    "version": 2
+  },
+  {
+    "appointment_id": "apt_seed_05",
+    "patient_id": "p_sample_18",
+    "provider_id": "pr_301",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "10:00"
+  },
+  {
+    "appointment_id": "apt_seed_06",
+    "patient_id": "p_sample_23",
+    "provider_id": "pr_302",
+    "status": "SCHEDULED",
+    "working_day": 2,
+    "time": "09:00"
+  },
+  {
+    "appointment_id": "apt_seed_07",
+    "patient_id": "p_sample_20",
+    "provider_id": "pr_303",
+    "status": "UNREACHABLE",
+    "working_day": 2,
+    "time": "15:00",
+    "unreachable_reason": "NO_ANSWER",
+    "attempt_count": 1,
+    "version": 2
+  },
+  {
+    "appointment_id": "apt_seed_08",
+    "patient_id": "p_sample_21",
+    "provider_id": "pr_vsc_1",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "08:30"
+  },
+  {
+    "appointment_id": "apt_seed_09",
+    "patient_id": "p_sample_22",
+    "provider_id": "pr_vsc_2",
+    "status": "SCHEDULED",
+    "working_day": 3,
+    "time": "10:30"
+  },
+  {
+    "appointment_id": "apt_seed_10",
+    "patient_id": "p_sample_30",
+    "provider_id": "pr_vsc_3",
+    "status": "BOOKED",
+    "working_day": 3,
+    "time": "14:30"
+  },
+  {
+    "appointment_id": "apt_seed_11",
+    "patient_id": "p_sample_25",
+    "provider_id": "pr_vcp_1",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "09:00"
+  },
+  {
+    "appointment_id": "apt_seed_12",
+    "patient_id": "p_sample_26",
+    "provider_id": "pr_vcp_2",
+    "status": "SCHEDULED",
+    "working_day": 2,
+    "time": "13:30"
+  },
+  {
+    "appointment_id": "apt_seed_13",
+    "patient_id": "p_sample_27",
+    "provider_id": "pr_vcp_3",
+    "status": "CANCELLED",
+    "working_day": 4,
+    "time": "08:00",
+    "cancel_reason": "NO_LONGER_NEEDED",
+    "version": 2,
+    "note": "Cancelled: its slot stays open, as after POST /cancel."
+  },
+  {
+    "appointment_id": "apt_seed_14",
+    "patient_id": "p_sample_29",
+    "provider_id": "pr_301",
+    "status": "SCHEDULED",
+    "working_day": 3,
+    "time": "16:00"
+  },
+  {
+    "appointment_id": "apt_demo_1",
+    "patient_id": "pt_3391",
+    "provider_id": "pr_vinmec_1",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "09:00",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_2",
+    "patient_id": "pt_demo_2",
+    "provider_id": "pr_vinmec_2",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "10:00",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_3",
+    "patient_id": "pt_demo_3",
+    "provider_id": "pr_vinmec_4",
+    "status": "SCHEDULED",
+    "working_day": 1,
+    "time": "14:00",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_4",
+    "patient_id": "pt_demo_4",
+    "provider_id": "pr_vinmec_5",
+    "status": "SCHEDULED",
+    "working_day": 2,
+    "time": "09:00",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_5",
+    "patient_id": "pt_demo_5",
+    "provider_id": "pr_vinmec_6",
+    "status": "SCHEDULED",
+    "working_day": 2,
+    "time": "15:00",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_6",
+    "patient_id": "pt_demo_6",
+    "provider_id": "pr_vinmec_3",
+    "status": "SCHEDULED",
+    "working_day": 2,
+    "time": "10:30",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_7",
+    "patient_id": "pt_demo_7",
+    "provider_id": "pr_vinmec_1",
+    "status": "CONFIRMED",
+    "working_day": 3,
+    "time": "08:30",
+    "confirmed_via": "sms",
+    "version": 2,
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_8",
+    "patient_id": "pt_demo_8",
+    "provider_id": "pr_vinmec_2",
+    "status": "UNREACHABLE",
+    "working_day": 3,
+    "time": "14:30",
+    "unreachable_reason": "NO_ANSWER",
+    "attempt_count": 1,
+    "version": 2,
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_9",
+    "patient_id": "pt_demo_9",
+    "provider_id": "pr_vinmec_4",
+    "status": "SCHEDULED",
+    "working_day": 4,
+    "time": "09:30",
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "appointment_id": "apt_demo_10",
+    "patient_id": "pt_demo_10",
+    "provider_id": "pr_vinmec_5",
+    "status": "BOOKED",
+    "working_day": 4,
+    "time": "15:30",
+    "scope": "shared",
+    "profile": "demo"
+  }
+]

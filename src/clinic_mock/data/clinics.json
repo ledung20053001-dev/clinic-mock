@@ -1,0 +1,39 @@
+[
+  {
+    "id": "c_001",
+    "name": "Phòng khám Đa khoa Trung tâm",
+    "city": "Hà Nội",
+    "district": "Hoàn Kiếm"
+  },
+  {
+    "id": "c_002",
+    "name": "Phòng khám Đa khoa Cầu Giấy",
+    "city": "Hà Nội",
+    "district": "Cầu Giấy"
+  },
+  {
+    "id": "cl_vinmec",
+    "name": "Vinmec Times City",
+    "city": "Hà Nội",
+    "district": "Hai Bà Trưng",
+    "note": "Contract clinic (Listing 3/4). Its stock availability is only slot_91d2: the Appendix A demo depends on it being the one offer. Near-term availability comes from the demo profile."
+  },
+  {
+    "id": "c_003",
+    "name": "Phòng khám Đa khoa Long Biên",
+    "city": "Hà Nội",
+    "district": "Long Biên"
+  },
+  {
+    "id": "cl_vinmec_smartcity",
+    "name": "Vinmec Smart City",
+    "city": "Hà Nội",
+    "district": "Nam Từ Liêm"
+  },
+  {
+    "id": "cl_vinmec_centralpark",
+    "name": "Vinmec Central Park",
+    "city": "TP. Hồ Chí Minh",
+    "district": "Bình Thạnh"
+  }
+]

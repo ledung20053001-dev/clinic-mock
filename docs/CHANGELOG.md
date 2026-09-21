@@ -2,6 +2,28 @@
 
 All notable changes to the Clinic Platform API are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/) and the API uses [semantic versioning](https://semver.org/) for breaking-change majors.
 
+## [Unreleased]
+
+No request or response shape changed. Every row the previous seed produced is still produced, with the same id and the same content.
+
+### Added
+
+- **Seed dataset**: the seed now lives in JSON under `src/clinic_mock/data`, one file per entity (clinics, departments, providers, schedules, patients, slots, appointments), instead of Python lists in `store.py`. It is validated in full when it loads: record formats, references between files, unique phones, and each appointment's slot sitting on its provider's schedule. Every problem is reported at once. `python -m clinic_mock.dataset [DIR]` checks a dataset and prints what it seeds today.
+- **Weekly schedules**: open slots are generated from each provider's working hours for `MOCK_SEED_HORIZON_DAYS` (default 21) starting today, so availability never goes stale. The upstream weekday block (2026-09-17 to 2026-10-30, UTC) is kept as a fixed-window schedule with its original `s_<date>_<time>` ids.
+- **More data**:
+  - 3 clinics (`c_003`, `cl_vinmec_smartcity`, `cl_vinmec_centralpark`).
+  - 9 departments (16 in all).
+  - 18 providers (25 in all), and every department has at least one.
+  - 16 patients per key, including a namesake of `pt_3391` and a child.
+  - 14 appointments per key across every clinic except `cl_vinmec`, in the statuses SCHEDULED, CONFIRMED, BOOKED, UNREACHABLE and CANCELLED.
+- **Profiles**: rows can belong to a profile other than `base`, seeded only when `MOCK_SEED_PROFILES` names it. `demo` adds a shared call list of 10 appointments and near-term `cl_vinmec` availability across six departments. The stock seed is unchanged for `cl_vinmec`: `slot_91d2` stays its only slot.
+- **Settings**: `MOCK_SEED_DATA_DIR` serves another dataset without a code change, and `MOCK_SEED_PROFILES` and `MOCK_SEED_HORIZON_DAYS` control the rest.
+
+### Changed
+
+- `GET /v1/slots` returns slots earliest first (ties by `slot_id`). It used to return them in insertion order.
+- A reset reuses the slot rows it has already built for that day, so reseeding thousands of generated slots takes under a millisecond.
+
 ## [2.0.0] - 2026-09-15
 
 ### Breaking — aligned to AI Health Residency product contract (Rev 1.0)

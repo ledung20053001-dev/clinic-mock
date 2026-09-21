@@ -1,0 +1,66 @@
+[
+  {
+    "code": "internal_medicine",
+    "name": "Nội tổng quát"
+  },
+  {
+    "code": "pediatrics",
+    "name": "Nhi khoa"
+  },
+  {
+    "code": "cardiology",
+    "name": "Tim mạch"
+  },
+  {
+    "code": "ent",
+    "name": "Tai Mũi Họng"
+  },
+  {
+    "code": "dermatology",
+    "name": "Da liễu"
+  },
+  {
+    "code": "obstetrics_gynecology",
+    "name": "Sản phụ khoa"
+  },
+  {
+    "code": "musculoskeletal",
+    "name": "Cơ xương khớp"
+  },
+  {
+    "code": "ophthalmology",
+    "name": "Mắt"
+  },
+  {
+    "code": "dentistry",
+    "name": "Răng Hàm Mặt"
+  },
+  {
+    "code": "gastroenterology",
+    "name": "Tiêu hóa"
+  },
+  {
+    "code": "neurology",
+    "name": "Thần kinh"
+  },
+  {
+    "code": "endocrinology",
+    "name": "Nội tiết"
+  },
+  {
+    "code": "respiratory",
+    "name": "Hô hấp"
+  },
+  {
+    "code": "urology",
+    "name": "Tiết niệu"
+  },
+  {
+    "code": "nutrition",
+    "name": "Dinh dưỡng"
+  },
+  {
+    "code": "rehabilitation",
+    "name": "Phục hồi chức năng"
+  }
+]
