@@ -6,8 +6,7 @@ Includes state-machine validation (§3.4) and idempotency/versioning (§4.2.3).
 
 import pytest
 
-from tests.conftest import AUTH_A, idem_key, write_headers
-
+from tests.conftest import AUTH_A, write_headers
 
 APPT_ID = "apt_00417"
 APPT_VERSION = 3
@@ -314,7 +313,7 @@ class TestReschedule:
         assert r.status_code == 409
         assert r.json()["error"]["code"] == "SLOT_TAKEN"
 
-    def test_reschedule_from_rescheduled_fails(self, client):
+    def test_reschedule_from_rescheduled_succeeds(self, client):
         client.post(
             f"/v1/appointments/{APPT_ID}/reschedule",
             json={"new_slot_id": "slot_91d2", "requested_by": "PATIENT"},
@@ -325,7 +324,38 @@ class TestReschedule:
             json={"new_slot_id": "slot_77aa", "requested_by": "PATIENT"},
             headers={**AUTH_A, **write_headers(APPT_VERSION + 1)},
         )
-        assert r.status_code == 409
+        assert r.status_code == 200
+        assert r.json()["status"] == "RESCHEDULED"
+        assert r.json()["new_slot_id"] == "slot_77aa"
+
+    @pytest.mark.parametrize(
+        ("action", "payload", "expected_status"),
+        [
+            ("confirm", None, "CONFIRMED"),
+            (
+                "cancel",
+                {"cancel_reason": "PATIENT_UNAVAILABLE", "confirmed": True},
+                "CANCELLED",
+            ),
+        ],
+    )
+    def test_rescheduled_appointment_accepts_follow_up_actions(
+        self, client, action, payload, expected_status
+    ):
+        first = client.post(
+            f"/v1/appointments/{APPT_ID}/reschedule",
+            json={"new_slot_id": "slot_91d2", "requested_by": "PATIENT"},
+            headers={**AUTH_A, **write_headers(APPT_VERSION)},
+        )
+        assert first.status_code == 200
+
+        r = client.post(
+            f"/v1/appointments/{APPT_ID}/{action}",
+            json=payload,
+            headers={**AUTH_A, **write_headers(APPT_VERSION + 1)},
+        )
+        assert r.status_code == 200
+        assert r.json()["status"] == expected_status
 
     def test_reschedule_requested_by_staff(self, client):
         r = client.post(
