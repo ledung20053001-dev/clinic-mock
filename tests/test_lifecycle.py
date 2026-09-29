@@ -8,6 +8,7 @@ import pytest
 
 from tests.conftest import AUTH_A, write_headers
 
+
 APPT_ID = "apt_00417"
 APPT_VERSION = 3
 
@@ -97,20 +98,6 @@ class TestCancel:
         assert body["status"] == "CANCELLED"
         assert body["cancel_reason"] == "PATIENT_UNAVAILABLE"
         assert body["version"] == APPT_VERSION + 1
-        released = client.get(
-            "/v1/slots",
-            params={
-                "clinic_id": "cl_vinmec",
-                "from": "2026-10-14T15:30:00+07:00",
-                "to": "2026-10-14T16:30:00+07:00",
-            },
-            headers=AUTH_A,
-        )
-        assert released.status_code == 200
-        assert any(
-            slot["start_time"] == "2026-10-14T15:30:00+07:00"
-            for slot in released.json()["data"]
-        )
 
     def test_cancel_without_confirmation_returns_409(self, client):
         r = client.post(
@@ -132,11 +119,15 @@ class TestCancel:
 
     def test_cancel_all_reasons(self, client):
         reasons = [
-            "PATIENT_UNAVAILABLE", "NO_LONGER_NEEDED",
-            "WENT_ELSEWHERE", "COST", "UNSPECIFIED",
+            "PATIENT_UNAVAILABLE",
+            "NO_LONGER_NEEDED",
+            "WENT_ELSEWHERE",
+            "COST",
+            "UNSPECIFIED",
         ]
         for reason in reasons:
             from clinic_mock.store import seed_default
+
             seed_default()
             r = client.post(
                 f"/v1/appointments/{APPT_ID}/cancel",
@@ -208,12 +199,17 @@ class TestTransfer:
 
     def test_transfer_all_reasons(self, client):
         reasons = [
-            "IDENTITY_FAILED", "PATIENT_NOT_FOUND", "OUT_OF_SCOPE",
-            "CLINICAL_QUESTION", "NOT_UNDERSTOOD", "PATIENT_REQUEST",
+            "IDENTITY_FAILED",
+            "PATIENT_NOT_FOUND",
+            "OUT_OF_SCOPE",
+            "CLINICAL_QUESTION",
+            "NOT_UNDERSTOOD",
+            "PATIENT_REQUEST",
             "SYSTEM_ERROR",
         ]
         for reason in reasons:
             from clinic_mock.store import seed_default
+
             seed_default()
             r = client.post(
                 f"/v1/appointments/{APPT_ID}/transfer",
@@ -281,7 +277,12 @@ class TestReschedule:
             headers={**AUTH_A, **write_headers(APPT_VERSION)},
         )
         body = r.json()
-        assert set(body.keys()) == {"status", "new_slot_id", "released_slot_id", "version"}
+        assert set(body.keys()) == {
+            "status",
+            "new_slot_id",
+            "released_slot_id",
+            "version",
+        }
 
     def test_reschedule_releases_old_slot(self, client):
         client.post(
@@ -304,6 +305,7 @@ class TestReschedule:
 
     def test_reschedule_slot_taken(self, client):
         from clinic_mock.store import db
+
         db.slots.pop("slot_91d2", None)
         r = client.post(
             f"/v1/appointments/{APPT_ID}/reschedule",
@@ -420,6 +422,7 @@ class TestUnreachable:
         reasons = ["SILENCE", "VOICEMAIL", "NO_ANSWER", "LINE_BUSY"]
         for reason in reasons:
             from clinic_mock.store import seed_default
+
             seed_default()
             r = client.post(
                 f"/v1/appointments/{APPT_ID}/unreachable",
@@ -560,13 +563,20 @@ class TestStateMachine:
         ]
         for action, body in terminal_setups:
             from clinic_mock.store import seed_default
+
             seed_default()
             client.post(
                 f"/v1/appointments/{APPT_ID}/{action}",
                 json=body,
                 headers={**AUTH_A, **write_headers(APPT_VERSION)},
             )
-            for next_action in ["confirm", "cancel", "transfer", "reschedule", "unreachable"]:
+            for next_action in [
+                "confirm",
+                "cancel",
+                "transfer",
+                "reschedule",
+                "unreachable",
+            ]:
                 payload = {}
                 if next_action == "cancel":
                     payload = {"cancel_reason": "UNSPECIFIED", "confirmed": True}

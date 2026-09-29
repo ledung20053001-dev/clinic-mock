@@ -94,7 +94,7 @@ Finds patient records by phone. Used during inbound calls (§1.1.9) to identify 
 #### `GET /v1/slots`
 Retrieves genuinely open, bookable time slots. The **only** legal source for presenting availability to a caller (§1.1.6).
 * **Query:** `clinic_id` (required), `from` (RFC 3339, required), `to` (RFC 3339, required, `to > from`, `to - from ≤ 14d`), optional `cursor`, `limit`.
-* **Response `200 OK`:** Paginated `Slot` envelope, earliest `start_time` first (ties by `slot_id`), so cursors page stably. Times may carry a `±HH:MM` offset (`+07:00` for Vietnam).
+* **Response `200 OK`:** Paginated `Slot` envelope. Times may carry a `±HH:MM` offset (`+07:00` for Vietnam).
 
 ### 3.2 Booking & Reading
 
@@ -174,21 +174,106 @@ Anything off-script returns `409 INVALID_STATE_TRANSITION`.
 
 ## 4. Admin & Operations (`/_harness/*`)
 
-Per-tenant scoring-harness endpoints. **Reserved for the harness** — contract §4.2.4 says the bot MUST NOT call these. Always scoped to the caller's data (plus the canonical contract fixtures).
+Per-tenant scoring-harness endpoints. **Reserved for the harness** — contract §4.2.4 says the bot MUST NOT call these. Always scoped to the caller's data (plus the canonical contract fixtures for reads).
 
 | Method | Path | Purpose |
 | :--- | :--- | :--- |
 | `GET` | `/_harness/state` | Full snapshot: patients, slots, appointments. |
-| `GET` | `/_harness/patients` | Patients in caller's scope. |
+| `GET` | `/_harness/patients` | Patients visible to the caller (own scope + canonical). |
+| `POST` | `/_harness/patients` | Create a patient in the caller's tenant scope. Server generates `patient_id`. Canonical fixtures are unreachable (always assign a new id). |
+| `PATCH` | `/_harness/patients/{id}` | Partial update. Canonical fixtures are hidden (`404`). Only the caller's own patients are writable. |
+| `DELETE` | `/_harness/patients/{id}` | Hard-delete from the caller's tenant scope. Canonical fixtures hidden (`404`). No cascade — appointments referencing the patient must be cancelled/rescheduled first. |
 | `GET` | `/_harness/slots` | Slots in caller's scope. |
 | `GET` | `/_harness/appointments` | Appointments in caller's scope. |
+| `GET` | `/_harness/writelog` | Append-only log of every `/v1/*` mutation since last reset (§4.3 step 5). |
 | `GET` | `/_harness/snapshot` | Capture current state, returns `snapshot_id`. |
 | `POST` | `/_harness/snapshot/{sid}/restore` | Reset to a prior snapshot. |
 | `POST` | `/_harness/seed` | Reset and seed canonical + per-tenant fixtures. |
 | `POST` | `/_harness/reset` | Flush and re-seed. |
 | `POST` | `/_harness/time-travel` | Advance the system clock by `seconds` (signed). |
 
-What a seed contains comes from the seed dataset (JSON under `src/clinic_mock/data`), not from code. See the README, "Seed Data". Schedules generate open slots from today for `MOCK_SEED_HORIZON_DAYS`, so a seed on a later day holds later slots. The contract fixtures and the upstream fixed-date rows never move.
+### 4.1 Patient scaffolding (CRUD)
+
+Test setup can add/edit/remove patients without touching the canonical contract fixtures. The harness sees both its own (mutable) and canonical (read-only) patients via `GET /_harness/patients`. Mutations (`POST` / `PATCH` / `DELETE`) only operate on the caller's own tenant scope — every canonical fixture id (`pt_3391`, etc.) returns `404 NOT_FOUND` on write attempts to keep the contract source-of-truth fixtures immutable.
+
+```bash
+# Create
+curl -s -X POST "$HOST/_harness/patients" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"display_name":"Test T.","phone":"0912345678","dob":"1990-01-01",
+       "verify":{"full_name":"Trần Thị Test","dob":"1990-01-01"}}'
+
+# Patch (e.g. flip display_name)
+curl -s -X PATCH "$HOST/_harness/patients/pt_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"display_name":"Renamed"}'
+
+# Delete
+curl -s -X DELETE "$HOST/_harness/patients/pt_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer $KEY"
+```
+
+### 4.2 Writelog (§4.3 step 5)
+
+`GET /_harness/writelog` returns the **time-ordered** interleaving of every `/v1/*` request the mock received since the last `_harness/reset`. The contract calls this *"every write your bot made, and every slot list it was served"* — both streams land in this one log so the harness can replay the case end-to-end.
+
+Each entry captures:
+
+* `at` — ISO timestamp
+* `op` — one of `list_slots`, `find_patients`, `get_appointment`, `list_appointments`, `create_appointment`, `confirm`, `cancel`, `transfer`, `reschedule`, `unreachable`
+* `method` + `path` — the request (GET for reads; POST/PATCH/PUT/DELETE for writes)
+* `status` — the response status (2xx success, 4xx rejected)
+* `body`:
+    * **For writes** (`POST/PATCH/PUT/DELETE`) — the parsed request body.
+    * **For reads** (`GET`) — the parsed response body. This is what makes SF-02 detection possible: the harness sees every slot list the bot was served, so it can verify that any slot the bot later booked (`create_appointment.body.slot_id` or `reschedule.body.new_slot_id`) was actually in a prior `list_slots.body.data[*].slot_id`.
+* `appointment_id` — extracted from the path for the relevant endpoints (writes against an appointment, plus `get_appointment` reads).
+* `if_match`, `idempotency_key` — for replay / concurrency audit (writes only).
+
+The scoring harness reads this log to detect:
+
+* **SF-01** — write entry has `appointment_id` ≠ the case's expected target.
+* **SF-02** — `slot_id` in a write entry was never in any preceding `list_slots` entry's `body.data[*].slot_id`.
+* **SF-03** — read against `/v1/patients` (identity lookup) happened *before* any write to `/v1/appointments/{id}/confirm|cancel|transfer`.
+* **SF-05** — a successful `cancel` entry without a prior `cancel` 409 `CONFIRMATION_REQUIRED` (the bot cancelled without the second confirmation).
+
+Query filters: `?op=<op>`, `?appointment_id=<id>`, `?limit=<1..10000>`. Snapshot/restore roundtrips the writelog alongside patients/slots/appointments. `_harness/*` (admin/CRUD) calls are **not** captured — they're scoring-side actions, not bot-side mutations.
+
+### 4.3 Time-scoped test queries (§4.3 step 5)
+
+The harness drives one test at a time. To scope the writelog and snapshots
+to that test, bracket it with timestamps and snapshot before/after. Every
+write+read the bot made during the test, plus a "before" view, comes back
+over four GETs:
+
+```bash
+# Setup
+SID=$(curl -sX POST "$HOST/_harness/snapshot" -H "$AUTH" | jq -r .snapshot_id)
+T_START=$(now_iso)   # harness keeps this locally
+
+# Drive the test (contract §4.3 figure 2)
+curl -sX POST "$BOT/v1/calls" -d '{...}'                       # → call_id (on bot)
+curl -sX POST "$BOT/v1/calls/$CALL_ID/turn" -d '{...}' × N     # bot hits /v1/* internally
+
+T_END=$(now_iso)
+
+# Verify — everything-for-test-X
+curl -s "$HOST/_harness/writelog?since=$T_START&until=$T_END" -H "$AUTH"
+curl -s "$HOST/_harness/snapshot/$SID" -H "$AUTH"
+curl -s "$HOST/_harness/state" -H "$AUTH"
+```
+
+`GET /_harness/snapshot/{sid}` returns the snapshot's contents; the harness
+diffs against `/_harness/state` to find what changed.
+
+`GET /_harness/snapshot` lists the caller's snapshots, optionally bounded
+by `?since=<iso>&until=<iso>` (both inclusive on `created_at`). Useful for
+cleanup; not required if the harness tracks ids externally.
+
+Both snapshot read endpoints are tenant-scoped: cross-tenant access returns
+`404 NOT_FOUND` (existence hidden). Bad ISO timestamps return
+`400 INVALID_REQUEST`. `since > until` returns `400 INVALID_REQUEST`.
 
 ## 5. Data Models
 
@@ -336,11 +421,8 @@ src/clinic_mock/
 ├── logger.py          # loguru setup
 ├── routes.py          # all v1 + harness + health routes
 ├── schemas.py         # Pydantic models matching contract §2.2 + Appendix A
-├── dataset.py         # seed dataset: record types, loading, validation, CLI
-├── seeding.py         # dataset -> one day's rows (schedules -> open slots)
-├── store.py           # in-memory db; seed_default() fills it from the dataset
-├── tracing.py         # Langfuse OTel instrumentation
-└── data/              # the seed dataset, one JSON file per entity
+├── store.py           # in-memory db + canonical + per-tenant seed fixtures
+└── tracing.py         # Langfuse OTel instrumentation
 ```
 
 `docs/APIs.md` is the source of truth for the contract; the code is the

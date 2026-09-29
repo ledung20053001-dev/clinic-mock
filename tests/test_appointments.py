@@ -1,9 +1,6 @@
 """Tests for Appointment CRUD: POST /v1/appointments, GET ./{id}, GET ...?date= (§3.2)."""
 
-import uuid
-
-from clinic_mock.store import db
-from tests.conftest import AUTH_A, AUTH_B, TENANT_A, idem_key, write_headers
+from tests.conftest import AUTH_A, AUTH_B, write_headers
 
 
 def _tenant_a_patient(client):
@@ -143,14 +140,25 @@ class TestGetAppointment:
         r = client.get("/v1/appointments/apt_00417", headers=AUTH_A)
         body = r.json()
         required_fields = [
-            "appointment_id", "status", "clinic_id", "starts_at", "ends_at",
-            "department", "patient", "attempt_count", "version",
+            "appointment_id",
+            "status",
+            "clinic_id",
+            "starts_at",
+            "ends_at",
+            "department",
+            "patient",
+            "attempt_count",
+            "version",
         ]
         for field in required_fields:
             assert field in body, f"Missing required field: {field}"
         nullable_fields = [
-            "cancel_reason", "transfer_reason", "unreachable_reason",
-            "confirmed_at", "confirmed_via", "new_slot_id",
+            "cancel_reason",
+            "transfer_reason",
+            "unreachable_reason",
+            "confirmed_at",
+            "confirmed_via",
+            "new_slot_id",
         ]
         for field in nullable_fields:
             assert field in body, f"Missing nullable field: {field}"
@@ -177,9 +185,7 @@ class TestListAppointments:
         assert r.status_code == 200
         body = r.json()
         assert "data" in body
-        assert any(
-            a["appointment_id"] == "apt_00417" for a in body["data"]
-        )
+        assert any(a["appointment_id"] == "apt_00417" for a in body["data"])
 
     def test_list_ordered_by_starts_at(self, client):
         r = client.get(

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Clinic Platform API
-  version: '2.0.0'
+  version: '1.0.0'
   summary: AI-callbot clinic mock — appointment and discovery endpoints per the AI Health Residency product contract (Rev 1.0).
   description: |
     Authoritative human-readable spec: ../docs/APIs.md.
@@ -339,11 +339,39 @@ paths:
               schema: { $ref: '#/components/schemas/HarnessState' }
         '401': { $ref: '#/components/responses/BadKey' }
 
+  /_harness/writelog:
+    get:
+      tags: [Admin]
+      operationId: harnessWritelog
+      summary: Append-only log of every /v1/* mutation since the last reset (§4.3 step 5).
+      description: |
+        The scoring harness reads this to detect SF-01 (write to wrong appointment
+        — check `appointment_id`), SF-02 (offer slot not returned by /v1/slots —
+        check the `slot_id` in each `create_appointment` entry against prior
+        /v1/slots responses), and SF-05 (cancel without the second confirmation —
+        visible as a 409 `CONFIRMATION_REQUIRED` entry). Captures the request body,
+        response status, If-Match, and Idempotency-Key for each /v1/* write.
+      security:
+        - bearerAuth: []
+      parameters:
+        - { in: query, name: op, schema: { type: string }, description: 'Filter by op label (create_appointment, confirm, cancel, transfer, reschedule, unreachable).' }
+        - { in: query, name: appointment_id, schema: { type: string }, description: 'Filter by affected appointment id (e.g. SF-01 detection).' }
+        - { in: query, name: since, schema: { type: string, format: date-time }, description: 'Inclusive lower bound on entry `at` (ISO 8601). Used to scope a query to one test''s time window.' }
+        - { in: query, name: until, schema: { type: string, format: date-time }, description: 'Inclusive upper bound on entry `at` (ISO 8601).' }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 10000, default: 1000 } }
+      responses:
+        '200':
+          description: Writelog entries.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WriteLogResponse' }
+        '401': { $ref: '#/components/responses/BadKey' }
+
   /_harness/patients:
     get:
       tags: [Admin]
       operationId: harnessPatients
-      summary: Patients in the caller's data scope.
+      summary: Patients in the caller's data scope (own + canonical contract fixtures).
       security:
         - bearerAuth: []
       responses:
@@ -355,6 +383,79 @@ paths:
                 type: array
                 items: { $ref: '#/components/schemas/Patient' }
         '401': { $ref: '#/components/responses/BadKey' }
+    post:
+      tags: [Admin]
+      operationId: createPatient
+      summary: Create a patient in the caller's tenant scope (scaffolding).
+      description: |
+        Server generates `patient_id`. Canonical contract fixtures are
+        read-only — this endpoint always assigns a new id under the caller's
+        tenant, so it can never collide with `pt_3391` etc.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PatientCreate' }
+      responses:
+        '201':
+          description: Patient created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Patient' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/BadKey' }
+
+  /_harness/patients/{patient_id}:
+    parameters:
+      - { in: path, name: patient_id, required: true, schema: { type: string } }
+    patch:
+      tags: [Admin]
+      operationId: updatePatient
+      summary: Partially update a patient (scaffolding).
+      description: |
+        All fields optional. Canonical fixtures are hidden (`404 NOT_FOUND`)
+        to match the read-side isolation semantics. Updateable only inside
+        the caller's tenant scope.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PatientUpdate' }
+      responses:
+        '200':
+          description: Updated patient.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Patient' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/BadKey' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin]
+      operationId: deletePatient
+      summary: Delete a patient from the caller's tenant scope (scaffolding).
+      description: |
+        Canonical contract fixtures are hidden (`404 NOT_FOUND`). Appointments
+        referencing a deleted patient are NOT cascaded — the caller must delete
+        or reschedule them first if that's the intent.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted]
+                properties:
+                  deleted: { type: string }
+        '401': { $ref: '#/components/responses/BadKey' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /_harness/slots:
     get:
@@ -393,6 +494,35 @@ paths:
   /_harness/snapshot:
     get:
       tags: [Admin]
+      operationId: harnessSnapshotList
+      summary: List the caller's tenant's snapshots, optionally bounded by `since`/`until`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - { in: query, name: since, schema: { type: string, format: date-time }, description: 'Inclusive lower bound on snapshot `created_at` (ISO 8601).' }
+        - { in: query, name: until, schema: { type: string, format: date-time }, description: 'Inclusive upper bound on snapshot `created_at` (ISO 8601).' }
+      responses:
+        '200':
+          description: Caller's snapshots.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [snapshots, count]
+                properties:
+                  snapshots:
+                    type: array
+                    items:
+                      type: object
+                      required: [snapshot_id, created_at]
+                      properties:
+                        snapshot_id: { type: string }
+                        created_at: { type: string, format: date-time }
+                  count: { type: integer }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/BadKey' }
+    post:
+      tags: [Admin]
       operationId: harnessSnapshot
       summary: Capture a state snapshot for later restore.
       security:
@@ -408,6 +538,42 @@ paths:
                   snapshot_id: { type: string }
                 required: [snapshot_id]
         '401': { $ref: '#/components/responses/BadKey' }
+
+  /_harness/snapshot/{sid}:
+    parameters:
+      - { in: path, name: sid, required: true, schema: { type: string } }
+    get:
+      tags: [Admin]
+      operationId: harnessSnapshotRead
+      summary: Read a captured snapshot. Tenant-scoped.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The snapshot.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [snapshot_id, created_at, patients, slots, appointments, writelog]
+                properties:
+                  snapshot_id: { type: string }
+                  created_at: { type: string, format: date-time }
+                  patients:
+                    type: array
+                    items: { $ref: '#/components/schemas/Patient' }
+                  slots:
+                    type: array
+                    items: { $ref: '#/components/schemas/Slot' }
+                  appointments:
+                    type: array
+                    items: { $ref: '#/components/schemas/Appointment' }
+                  writelog:
+                    type: array
+                    items: { $ref: '#/components/schemas/WriteLogEntry' }
+                  system_clock_offset_sec: { type: integer }
+        '401': { $ref: '#/components/responses/BadKey' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /_harness/snapshot/{sid}/restore:
     post:
@@ -577,6 +743,23 @@ components:
           items: { $ref: '#/components/schemas/Patient' }
         next_cursor: { type: [string, 'null'] }
         has_more: { type: boolean }
+    PatientCreate:
+      type: object
+      description: 'Body for `POST /_harness/patients` — server generates `patient_id`.'
+      required: [display_name, phone, dob]
+      properties:
+        display_name: { type: string }
+        phone: { type: string, pattern: '^(02|03|05|07|08|09)\d{8}$' }
+        dob: { type: string, format: date }
+        verify: { $ref: '#/components/schemas/PatientVerify' }
+    PatientUpdate:
+      type: object
+      description: 'Body for `PATCH /_harness/patients/{id}` — all fields optional.'
+      properties:
+        display_name: { type: string }
+        phone: { type: string, pattern: '^(02|03|05|07|08|09)\d{8}$' }
+        dob: { type: string, format: date }
+        verify: { $ref: '#/components/schemas/PatientVerify' }
     Slot:
       type: object
       required: [slot_id, clinic_id, start_time, end_time, provider_id]
@@ -713,6 +896,51 @@ components:
         appointments:
           type: array
           items: { $ref: '#/components/schemas/Appointment' }
+    WriteLogEntry:
+      type: object
+      description: 'One /v1/* request the mock captured (§4.3 step 5 — writes + slot lists).'
+      required: [at, op, method, path, status]
+      properties:
+        at: { type: string, format: date-time }
+        op:
+          type: string
+          enum:
+            - list_slots
+            - find_patients
+            - get_appointment
+            - list_appointments
+            - create_appointment
+            - confirm
+            - cancel
+            - transfer
+            - reschedule
+            - unreachable
+        method: { type: string, enum: [GET, POST, PATCH, PUT, DELETE] }
+        path: { type: string }
+        status: { type: integer }
+        body:
+          description: |
+            For writes (POST/PATCH/PUT/DELETE): the parsed request body.
+            For reads (GET): the parsed response body (the slot list the bot
+            was served, the patient record fetched, etc.). Null if empty or
+            not JSON.
+          oneOf:
+            - type: object
+            - type: 'null'
+        if_match: { type: integer }
+        idempotency_key: { type: string }
+        appointment_id: { type: string }
+    WriteLogResponse:
+      type: object
+      required: [entries, count, truncated]
+      properties:
+        entries:
+          type: array
+          items: { $ref: '#/components/schemas/WriteLogEntry' }
+        count: { type: integer, description: 'Total entries matching the filter.' }
+        truncated:
+          type: boolean
+          description: 'True when count > limit (more entries exist beyond the returned page).'
     ErrorBody:
       type: object
       required: [error]
