@@ -8,7 +8,7 @@ class AppSettings(BaseSettings):
     )
 
     PROJECT_NAME: str = "clinic-mock"
-    VERSION: str = "0.1.0"
+    VERSION: str = "1.0.0"
     DEBUG: bool = False
     HOST: str = "0.0.0.0"
     PORT: int = 8000

@@ -26,15 +26,137 @@ from clinic_mock.schemas import (
     PatientVerify,
     Slot,
 )
+<<<<<<< HEAD
 from clinic_mock.seeding import SeedPlan, build_plan, clinic_today, parse_profiles
+=======
+>>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a
 
 # Tenant id under which contract canonical fixtures live. Read by the route
 # helpers to widen the tenant filter — see _visible_tenants() in routes.py.
 CANONICAL_TENANT = "t_canonical"
 
 
+# /v1/* path → semantic operation name. Used by the writelog middleware to tag
+# each captured request with a stable op label that the scoring harness can
+# match against expected SF-detection rules (SF-01 wrong-write, SF-02 slot
+# not served, etc.).
+WRITELOG_WRITE_OPS: dict[str, str] = {
+    "/v1/appointments": "create_appointment",
+    "confirm": "confirm",
+    "cancel": "cancel",
+    "transfer": "transfer",
+    "reschedule": "reschedule",
+    "unreachable": "unreachable",
+}
+
+
+WRITELOG_READ_OPS: dict[str, str] = {
+    "/v1/patients": "find_patients",
+    "/v1/slots": "list_slots",
+    "/v1/appointments": "list_appointments",
+    # /v1/appointments/<id> is handled below
+}
+
+
 def now_iso() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+
+def _parse_iso(value: str) -> datetime | None:
+    """Parse an ISO 8601 string as produced by `now_iso()` or any RFC 3339 input.
+
+    Accepts both `Z` suffix and explicit `±HH:MM` offsets. Returns None on
+    malformed input (so `WriteLog.query` can drop entries without an `at`).
+    """
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def derive_writelog_op(method: str, path: str) -> str | None:
+    """Map (method, path) to a semantic writelog `op` label.
+
+    Returns None for non-v1 paths (the writelog middleware skips those).
+    Returns a `list_*` op for collection GETs (needed for SF-02 scoring —
+    the harness needs to see what slot lists the bot was served).
+    """
+    if not path.startswith("/v1/"):
+        return None
+    norm = path.rstrip("/")
+    if method == "POST" and norm == "/v1/appointments":
+        return "create_appointment"
+    parts = norm.strip("/").split("/")
+    # /v1/appointments/<id>/<action> (writes)
+    if (
+        method in {"POST"}
+        and len(parts) >= 4
+        and parts[0] == "v1"
+        and parts[1] == "appointments"
+        and parts[3] in WRITELOG_WRITE_OPS
+    ):
+        return parts[3]
+    # Single GETs (writes-related reads)
+    if (
+        method == "GET"
+        and len(parts) == 4
+        and parts[0] == "v1"
+        and parts[1] == "appointments"
+    ):
+        return "get_appointment"
+    # Collection GETs (read paths)
+    if method == "GET" and norm in WRITELOG_READ_OPS:
+        return WRITELOG_READ_OPS[norm]
+    return None
+
+
+class WriteLog:
+    """Append-only log of every /v1/* mutation the mock received.
+
+    Reset by `/_harness/reset`. Read back by `GET /_harness/writelog` for the
+    scoring harness (§4.3 step 5). Captures request body + response status
+    so the harness can verify writes against expected behaviour.
+    """
+
+    def __init__(self) -> None:
+        self.entries: list[dict] = []
+
+    def append(self, entry: dict) -> None:
+        self.entries.append(entry)
+
+    def reset(self) -> None:
+        self.entries = []
+
+    def query(
+        self,
+        op: str | None = None,
+        appointment_id: str | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+    ) -> list[dict]:
+        out = self.entries
+        if op is not None:
+            out = [e for e in out if e.get("op") == op]
+        if appointment_id is not None:
+            out = [e for e in out if e.get("appointment_id") == appointment_id]
+        if since is not None or until is not None:
+            since_dt = since
+            until_dt = until
+            kept: list[dict] = []
+            for e in out:
+                at_raw = e.get("at")
+                if not at_raw:
+                    continue
+                at_dt = _parse_iso(at_raw)
+                if at_dt is None:
+                    continue
+                if since_dt is not None and at_dt < since_dt:
+                    continue
+                if until_dt is not None and at_dt > until_dt:
+                    continue
+                kept.append(e)
+            out = kept
+        return out
 
 
 class Store:
@@ -43,6 +165,7 @@ class Store:
         self.slots: dict[str, Slot] = {}
         self.appointments: dict[str, Appointment] = {}
         self.snapshots: dict[str, dict] = {}
+        self.writelog: WriteLog = WriteLog()
         self.system_clock_offset_sec: int = 0
 
     def now(self) -> datetime:
@@ -57,28 +180,101 @@ class Store:
     def reset(self) -> None:
         self.__init__()
 
-    def snapshot(self) -> str:
+    def snapshot(self, tenant_id: str) -> str:
         sid = self.new_id("snap")
+        # Snapshots carry `tenant_id` at the envelope level for cross-tenant
+        # access checks (see `restore`/`get_snapshot`). Inside `data` we keep
+        # the per-row `tenant_id` (and Appointment's `slot_id`/`provider_id`)
+        # because Pydantic validation on restore rejects Patient/Slot/Appointment
+        # without those fields — `Field(exclude=True)` only affects serialization,
+        # not deserialization.
         self.snapshots[sid] = {
-            "patients": {k: v.model_dump() for k, v in self.patients.items()},
-            "slots": {k: v.model_dump() for k, v in self.slots.items()},
-            "appointments": {k: v.model_dump() for k, v in self.appointments.items()},
-            "system_clock_offset_sec": self.system_clock_offset_sec,
+            "tenant_id": tenant_id,
+            "created_at": now_iso(),
+            "data": {
+                "patients": {
+                    k: {**v.model_dump(), "tenant_id": v.tenant_id}
+                    for k, v in self.patients.items()
+                },
+                "slots": {
+                    k: {**v.model_dump(), "tenant_id": v.tenant_id}
+                    for k, v in self.slots.items()
+                },
+                "appointments": {
+                    k: {
+                        **v.model_dump(),
+                        "tenant_id": v.tenant_id,
+                        "slot_id": v.slot_id,
+                        "provider_id": v.provider_id,
+                    }
+                    for k, v in self.appointments.items()
+                },
+                "writelog": list(self.writelog.entries),
+                "system_clock_offset_sec": self.system_clock_offset_sec,
+            },
         }
         return sid
 
-    def restore(self, sid: str) -> None:
+    def get_snapshot(self, sid: str, caller_tenant_id: str) -> dict | None:
+        snap = self.snapshots.get(sid)
+        if snap is None or snap["tenant_id"] != caller_tenant_id:
+            return None
+        data = snap["data"]
+        return {
+            "snapshot_id": sid,
+            "created_at": snap["created_at"],
+            "patients": list(data["patients"].values()),
+            "slots": list(data["slots"].values()),
+            "appointments": list(data["appointments"].values()),
+            "writelog": list(data.get("writelog", [])),
+            "system_clock_offset_sec": data["system_clock_offset_sec"],
+        }
+
+    def list_snapshots(
+        self,
+        caller_tenant_id: str,
+        since: datetime | None = None,
+        until: datetime | None = None,
+    ) -> list[dict]:
+        out: list[dict] = []
+        for sid, snap in self.snapshots.items():
+            if snap["tenant_id"] != caller_tenant_id:
+                continue
+            if since is not None or until is not None:
+                # Compare via datetime objects so cross-format timestamps
+                # (now_iso's ms+Z vs caller-supplied µs+offset) compare
+                # correctly. Mirrors WriteLog.query's pattern.
+                created_at_dt = _parse_iso(snap["created_at"])
+                if created_at_dt is None:
+                    continue
+                if since is not None and created_at_dt < since:
+                    continue
+                if until is not None and created_at_dt > until:
+                    continue
+            out.append({"snapshot_id": sid, "created_at": snap["created_at"]})
+        return out
+
+    def restore(self, sid: str, caller_tenant_id: str) -> None:
         snap = self.snapshots.get(sid)
         if snap is None:
             from clinic_mock.errors import not_found
 
             raise not_found(f"snapshot {sid}")
-        self.patients = {k: Patient(**v) for k, v in snap["patients"].items()}
-        self.slots = {k: Slot(**v) for k, v in snap["slots"].items()}
+        if snap["tenant_id"] != caller_tenant_id:
+            # Cross-tenant access — existence hidden, same convention as
+            # appointments / patients / slots reads.
+            from clinic_mock.errors import not_found
+
+            raise not_found(f"snapshot {sid}")
+        data = snap["data"]
+        self.patients = {k: Patient(**v) for k, v in data["patients"].items()}
+        self.slots = {k: Slot(**v) for k, v in data["slots"].items()}
         self.appointments = {
-            k: Appointment(**v) for k, v in snap["appointments"].items()
+            k: Appointment(**v) for k, v in data["appointments"].items()
         }
-        self.system_clock_offset_sec = snap["system_clock_offset_sec"]
+        self.writelog = WriteLog()
+        self.writelog.entries = list(data.get("writelog", []))
+        self.system_clock_offset_sec = data["system_clock_offset_sec"]
 
     def dump(self) -> dict:
         return {

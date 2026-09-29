@@ -5,8 +5,17 @@ build/
 dist/
 wheels/
 *.egg-info
+.agents
+.claude
+skills-lock.json
 
 # Virtual environments
 .venv
 
 .env
+
+# Superpowers brainstorming/planning scratch — local-only, not source.
+# Specs/plans live outside the repo by convention; if checked out from
+# the superpowers cache, do not commit.
+docs/superpowers/
+.superpowers/

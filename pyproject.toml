@@ -1,6 +1,6 @@
 [project]
 name = "clinic-mock"
-version = "0.1.0"
+version = "1.0.0"
 description = "Public-API mock for clinic platform testing."
 readme = "README.md"
 requires-python = ">=3.13"

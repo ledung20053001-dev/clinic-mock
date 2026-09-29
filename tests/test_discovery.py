@@ -7,9 +7,7 @@ class TestFindPatients:
     """GET /v1/patients?phone=..."""
 
     def test_find_by_valid_phone(self, client):
-        r = client.get(
-            "/v1/patients", params={"phone": "0912345678"}, headers=AUTH_A
-        )
+        r = client.get("/v1/patients", params={"phone": "0912345678"}, headers=AUTH_A)
         assert r.status_code == 200
         body = r.json()
         assert "data" in body
@@ -23,24 +21,18 @@ class TestFindPatients:
             assert "dob" in p["verify"]
 
     def test_find_canonical_patient(self, client):
-        r = client.get(
-            "/v1/patients", params={"phone": "0912345600"}, headers=AUTH_A
-        )
+        r = client.get("/v1/patients", params={"phone": "0912345600"}, headers=AUTH_A)
         assert r.status_code == 200
         data = r.json()["data"]
         assert any(p["patient_id"] == "pt_3391" for p in data)
 
     def test_phone_not_found_returns_empty(self, client):
-        r = client.get(
-            "/v1/patients", params={"phone": "0900000000"}, headers=AUTH_A
-        )
+        r = client.get("/v1/patients", params={"phone": "0900000000"}, headers=AUTH_A)
         assert r.status_code == 200
         assert r.json()["data"] == []
 
     def test_invalid_phone_format(self, client):
-        r = client.get(
-            "/v1/patients", params={"phone": "12345"}, headers=AUTH_A
-        )
+        r = client.get("/v1/patients", params={"phone": "12345"}, headers=AUTH_A)
         assert r.status_code == 422 or r.status_code == 400
 
     def test_missing_phone_param(self, client):
@@ -58,9 +50,7 @@ class TestFindPatients:
         assert "has_more" in body
 
     def test_tenant_id_not_in_response(self, client):
-        r = client.get(
-            "/v1/patients", params={"phone": "0912345678"}, headers=AUTH_A
-        )
+        r = client.get("/v1/patients", params={"phone": "0912345678"}, headers=AUTH_A)
         for p in r.json()["data"]:
             assert "tenant_id" not in p
 

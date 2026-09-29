@@ -27,12 +27,8 @@ class TestIdempotencyReplay:
         key = idem_key()
         h = {**AUTH_A, "Idempotency-Key": key, "If-Match": str(APPT_VERSION)}
         body = {"cancel_reason": "UNSPECIFIED", "confirmed": True}
-        r1 = client.post(
-            f"/v1/appointments/{APPT_ID}/cancel", json=body, headers=h
-        )
-        r2 = client.post(
-            f"/v1/appointments/{APPT_ID}/cancel", json=body, headers=h
-        )
+        r1 = client.post(f"/v1/appointments/{APPT_ID}/cancel", json=body, headers=h)
+        r2 = client.post(f"/v1/appointments/{APPT_ID}/cancel", json=body, headers=h)
         assert r1.json() == r2.json()
 
     def test_create_appointment_replay_with_header(self, client):

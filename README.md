@@ -1,14 +1,16 @@
-# clinic-mock
+# clinic-mock — v1.0.0
 
-Clinic mock aligned to the **AI Health Residency product contract, Rev 1.0**
-([callbot-contract-site.vercel.app](https://callbot-contract-site.vercel.app/)).
-FastAPI in-process; bearer-key auth; each API key is fully isolated from every
-other; canonical contract fixtures (`apt_00417`, `pt_3391`, `slot_91d2`, `cl_vinmec`)
-are visible to every caller; optional Langfuse tracing.
+**v1.0.0** — first stable release aligned to the **AI Health Residency product
+contract, Rev 1.0** ([callbot-contract-site.vercel.app](https://callbot-contract-site.vercel.app/)).
+
+FastAPI in-process; bearer-key auth with three recommended keys
+(dev / test / prod); per-key tenant isolation; canonical contract fixtures
+(`apt_00417`, `pt_3391`, `slot_91d2`, `cl_vinmec`) visible to every caller;
+optional Langfuse tracing; `/_harness/*` test-scoping endpoints.
 
 The full contract lives in [`docs/APIs.md`](docs/APIs.md) (authoritative human
-spec) and [`docs/openapi.yaml`](docs/openapi.yaml) (machine-readable). This
-README is the fastest path from zero to a working request.
+spec) and [`docs/openapi.yaml`](docs/openapi.yaml) (machine-readable). The
+contract itself is preserved verbatim in [`docs/product-contract.md`](docs/product-contract.md).
 
 ---
 
@@ -49,22 +51,28 @@ curl http://localhost:8000/v1/patients?phone=0912345678 \
   -H "Authorization: Bearer $KEY"
 ```
 
-Keys are registered via `MOCK_API_KEYS` in `.env`:
+Keys are registered in `.env`. The recommended layout is three named keys
+covering the typical dev/test/prod split — each one becomes its own tenant
+scope, fully isolated from the others:
 
 ```env
-MOCK_API_KEYS=$KEY,$KEY_ANOTHER
+MOCK_API_KEYS=dev:sk_dev_replace_me,test:sk_test_replace_me,prod:sk_prod_replace_me
 ```
 
-Each key resolves to exactly one isolated data scope, auto-derived as
-`t_<sha256(key)[:8]>` — stable across restarts, opaque, and unique per
-key. You never configure the scope; the platform picks it. Entries
-missing the `sk_` prefix are silently dropped. No expiry, no rotation —
-keys live as long as they're in the env.
+| Key | Use |
+|---|---|
+| `dev` | Local development, fixtures you don't mind losing. |
+| `test` | CI / shared test environment. |
+| `prod` | Any environment where data must survive a restart. |
 
-The legacy explicit form (`scope:key`) still works if you need a
-human-readable scope id (e.g. for cross-referencing with an external
-system):
+Each key resolves to one isolated data scope, auto-derived as
+`t_<sha256(key)[:8]>` — stable across restarts, opaque, unique per key.
+The platform picks the scope; you don't configure it. Cross-tenant access
+returns `404 NOT_FOUND` (existence hidden). Entries missing the `sk_` prefix
+are silently dropped. No expiry, no rotation — keys live as long as they're
+in the env.
 
+<<<<<<< HEAD
 ```env
 MOCK_API_KEYS=acme:$KEY_ACME,globex:$KEY_GLOBEX
 ```
@@ -331,6 +339,11 @@ Phones are VN-local 10-digit, validated as
 | `08` | Vinaphone |
 
 `+84` (E.164) format is rejected — convert before calling.
+=======
+The bare-key form (`MOCK_API_KEYS=sk_dev_xxx,sk_test_xxx`) still works if
+you don't want the named scope; the auto-derived scope id just becomes
+opaque.
+>>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a
 
 ---
 
@@ -364,6 +377,7 @@ docker run -p 8000:8000 --env-file .env clinic-mock
 
 On Vercel the build reads `PORT=80` from the platform; locally it falls back
 to `APP_PORT=8000` (or the default `8000`).
+<<<<<<< HEAD
 
 ---
 
@@ -391,3 +405,5 @@ The product contract at
 [callbot-contract-site.vercel.app](https://callbot-contract-site.vercel.app/)
 is the source of truth for the contract. The code is the source of truth for
 behavior. `docs/APIs.md` is the human-readable companion to both.
+=======
+>>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a

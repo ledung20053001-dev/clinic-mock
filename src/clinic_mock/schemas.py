@@ -44,11 +44,29 @@ class Patient(BaseModel):
 
 
 class PatientCreate(BaseModel):
+<<<<<<< HEAD
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     phone: Phone
     dob: IsoDate
     address: str = Field(min_length=1, max_length=255)
+=======
+    """Body for POST /_harness/patients — server generates the patient_id."""
+
+    display_name: str
+    phone: Phone
+    dob: IsoDate
+    verify: PatientVerify | None = None
+
+
+class PatientUpdate(BaseModel):
+    """Body for PATCH /_harness/patients/{id} — all fields optional."""
+
+    display_name: str | None = None
+    phone: Phone | None = None
+    dob: IsoDate | None = None
+    verify: PatientVerify | None = None
+>>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a
 
 
 class Slot(BaseModel):

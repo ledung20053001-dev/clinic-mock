@@ -37,7 +37,11 @@ from clinic_mock.schemas import (
     CancelRequest,
     Patient,
     PatientCreate,
+<<<<<<< HEAD
     PatientVerify,
+=======
+    PatientUpdate,
+>>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a
     RescheduleRequest,
     Slot,
     TransferRequest,
@@ -72,6 +76,11 @@ def _visible_tenants(caller_tenant: str) -> set[str]:
     return {caller_tenant, CANONICAL_TENANT}
 
 
+def _writable_tenants(caller_tenant: str) -> set[str]:
+    """Tenants whose data the caller can mutate. Canonical fixtures are read-only."""
+    return {caller_tenant}
+
+
 def write_headers(
     if_match: Annotated[int | None, Header(alias="If-Match")] = None,
     idempotency_key: Annotated[
@@ -93,6 +102,38 @@ def _get_appt(appt_id: str, caller_tenant: str) -> Appointment:
     if not appt or appt.tenant_id not in _visible_tenants(caller_tenant):
         raise not_found(f"appointment {appt_id}")
     return appt
+
+
+# ----- writelog helpers (read-side; writes are captured by middleware) -----
+
+
+def _record_writelog_read(
+    op: str,
+    request: Request,
+    *,
+    body: dict[str, Any],
+    status: int = 200,
+    appointment_id: str | None = None,
+) -> None:
+    """Append a read entry (GET /v1/*) to db.writelog for the scoring harness.
+
+    Called from `find_patients`, `list_slots`, `list_appointments`,
+    `get_appointment` so each read lands in §4.3 step 4 of the writelog.
+    Including the response body lets the harness verify SF-02 (slot booked
+    must appear in a prior `list_slots` response) and SF-03 (identity
+    verification happens before any appointment write).
+    """
+    db.writelog.append(
+        {
+            "at": now_iso(),
+            "op": op,
+            "method": "GET",
+            "path": request.url.path,
+            "status": status,
+            "body": body,
+            **({"appointment_id": appointment_id} if appointment_id else {}),
+        }
+    )
 
 
 # ----- cursor pagination -----
@@ -153,7 +194,9 @@ def find_patients(
         if p.tenant_id in tenants and p.phone == phone
     ]
     page, next_cursor, has_more = paginate(matched, cursor, limit)
-    return {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+    body = {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+    _record_writelog_read("find_patients", request, body=body)
+    return body
 
 
 @v1.post("/patients", status_code=status.HTTP_201_CREATED, tags=["Patients"])
@@ -274,10 +317,16 @@ def list_slots(
     clinic_id: str,
     from_: Annotated[
         str,
-        Query(alias="from", pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$"),
+        Query(
+            alias="from",
+            pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$",
+        ),
     ],
     to: Annotated[
-        str, Query(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")
+        str,
+        Query(
+            pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$"
+        ),
     ],
     cursor: str | None = None,
     limit: int = 25,
@@ -301,11 +350,17 @@ def list_slots(
             matched.append((starts, slot.slot_id, slot))
     matched.sort(key=lambda row: (row[0], row[1]))
     page, next_cursor, has_more = paginate(matched, cursor, limit)
+<<<<<<< HEAD
     return {
         "data": [slot.model_dump() for _, _, slot in page],
         "next_cursor": next_cursor,
         "has_more": has_more,
     }
+=======
+    body = {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+    _record_writelog_read("list_slots", request, body=body)
+    return body
+>>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a
 
 
 # ===== Appointments =====
@@ -385,7 +440,12 @@ def _patient_ref(patient: Patient):
 
 @v1.get("/appointments/{appt_id}", tags=["Appointments"])
 def get_appointment(request: Request, appt_id: str):
-    return _get_appt(appt_id, _tenant(request)).model_dump()
+    appt = _get_appt(appt_id, _tenant(request))
+    body = appt.model_dump()
+    _record_writelog_read(
+        "get_appointment", request, body=body, appointment_id=appt.appointment_id
+    )
+    return body
 
 
 @v1.get("/appointments", tags=["Appointments"])
@@ -406,7 +466,9 @@ def list_appointments(
     ]
     matched.sort(key=lambda a: a["starts_at"])
     page, next_cursor, has_more = paginate(matched, cursor, limit)
-    return {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+    body = {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+    _record_writelog_read("list_appointments", request, body=body)
+    return body
 
 
 @v1.post("/appointments/{appt_id}/confirm", tags=["Appointments"])
@@ -665,9 +727,7 @@ def harness_state(request: Request):
         "patients": [
             p.model_dump() for p in db.patients.values() if p.tenant_id in tenants
         ],
-        "slots": [
-            s.model_dump() for s in db.slots.values() if s.tenant_id in tenants
-        ],
+        "slots": [s.model_dump() for s in db.slots.values() if s.tenant_id in tenants],
         "appointments": [
             a.model_dump() for a in db.appointments.values() if a.tenant_id in tenants
         ],
@@ -676,8 +736,71 @@ def harness_state(request: Request):
 
 @harness.get("/patients", tags=["Admin"])
 def harness_patients(request: Request):
+    """List patients visible to the caller (own scope + canonical fixtures)."""
     tenants = _visible_tenants(_tenant(request))
     return [p.model_dump() for p in db.patients.values() if p.tenant_id in tenants]
+
+
+@harness.post("/patients", status_code=status.HTTP_201_CREATED, tags=["Admin"])
+def create_patient(
+    request: Request,
+    body: PatientCreate,
+):
+    """Create a patient in the caller's tenant scope.
+
+    Canonical contract fixtures are read-only; this endpoint always assigns a
+    server-generated `patient_id` under the caller's tenant.
+    """
+    tenant = _tenant(request)
+    new_pid = db.new_id("pt")
+    patient = Patient(
+        patient_id=new_pid,
+        tenant_id=tenant,
+        display_name=body.display_name,
+        phone=body.phone,
+        dob=body.dob,
+        verify=body.verify,
+    )
+    db.patients[new_pid] = patient
+    return patient.model_dump()
+
+
+@harness.patch("/patients/{patient_id}", tags=["Admin"])
+def update_patient(
+    request: Request,
+    patient_id: str,
+    body: PatientUpdate,
+):
+    """Partially update a patient. Canonical fixtures are hidden (404)."""
+    tenant = _tenant(request)
+    patient = db.patients.get(patient_id)
+    if not patient or patient.tenant_id not in _writable_tenants(tenant):
+        raise not_found(f"patient {patient_id}")
+    updates: dict = {}
+    if body.display_name is not None:
+        updates["display_name"] = body.display_name
+    if body.phone is not None:
+        updates["phone"] = body.phone
+    if body.dob is not None:
+        updates["dob"] = body.dob
+    if body.verify is not None:
+        updates["verify"] = body.verify
+    if not updates:
+        return patient.model_dump()  # no-op PATCH is OK
+    updated = patient.model_copy(update=updates)
+    db.patients[patient_id] = updated
+    return updated.model_dump()
+
+
+@harness.delete("/patients/{patient_id}", tags=["Admin"])
+def delete_patient(request: Request, patient_id: str):
+    """Delete a patient from the caller's tenant scope. Canonical fixtures hidden (404)."""
+    tenant = _tenant(request)
+    patient = db.patients.get(patient_id)
+    if not patient or patient.tenant_id not in _writable_tenants(tenant):
+        raise not_found(f"patient {patient_id}")
+    db.patients.pop(patient_id)
+    return {"deleted": patient_id}
 
 
 @harness.get("/slots", tags=["Admin"])
@@ -689,21 +812,93 @@ def harness_slots(request: Request):
 @harness.get("/appointments", tags=["Admin"])
 def harness_appointments(request: Request):
     tenants = _visible_tenants(_tenant(request))
-    return [
-        a.model_dump() for a in db.appointments.values() if a.tenant_id in tenants
-    ]
+    return [a.model_dump() for a in db.appointments.values() if a.tenant_id in tenants]
+
+
+@harness.get("/writelog", tags=["Admin"])
+def harness_writelog(
+    request: Request,
+    op: Annotated[str | None, Query(description="Filter by op label")] = None,
+    appointment_id: Annotated[
+        str | None, Query(description="Filter by affected appointment id")
+    ] = None,
+    since: Annotated[
+        datetime | None,
+        Query(description="Inclusive lower bound (ISO 8601)."),
+    ] = None,
+    until: Annotated[
+        datetime | None,
+        Query(description="Inclusive upper bound (ISO 8601)."),
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=10000)] = 1000,
+):
+    """Append-only log of every /v1/* mutation since the last reset (§4.3 step 5).
+
+    The scoring harness reads this to detect SF-01 (write to wrong appointment),
+    SF-02 (offer slot not returned by /slots), and SF-05 (cancel without the
+    second confirmation — visible as a 409 entry). Captures request body,
+    status, If-Match and Idempotency-Key on each write.
+
+    Pass `since` / `until` (ISO 8601) to scope entries to a single test's
+    time window — the harness brackets each test with `t_start` before the
+    first turn and `t_end` after the last.
+    """
+    _tenant(request)  # auth gate
+    if since is not None and until is not None and since > until:
+        raise validation_error("'since' must be <= 'until'.")
+    entries = db.writelog.query(
+        op=op,
+        appointment_id=appointment_id,
+        since=since,
+        until=until,
+    )
+    return {
+        "entries": entries[:limit],
+        "count": len(entries),
+        "truncated": len(entries) > limit,
+    }
+
+
+@harness.post("/snapshot", tags=["Admin"])
+def harness_snapshot(request: Request):
+    """Capture a snapshot of the current store state."""
+    sid = db.snapshot(tenant_id=_tenant(request))
+    return {"snapshot_id": sid}
 
 
 @harness.get("/snapshot", tags=["Admin"])
-def harness_snapshot(request: Request):
-    sid = db.snapshot()
-    return {"snapshot_id": sid}
+def harness_snapshot_list(
+    request: Request,
+    since: Annotated[
+        datetime | None,
+        Query(description="Inclusive lower bound on snapshot created_at."),
+    ] = None,
+    until: Annotated[
+        datetime | None,
+        Query(description="Inclusive upper bound on snapshot created_at."),
+    ] = None,
+):
+    """List the caller's tenant's snapshots, optionally bounded by time."""
+    tenant = _tenant(request)
+    if since is not None and until is not None and since > until:
+        raise validation_error("'since' must be <= 'until'.")
+    snapshots = db.list_snapshots(caller_tenant_id=tenant, since=since, until=until)
+    return {"snapshots": snapshots, "count": len(snapshots)}
 
 
 @harness.post("/snapshot/{sid}/restore", tags=["Admin"])
 def harness_snapshot_restore(request: Request, sid: str):
-    db.restore(sid)
+    db.restore(sid, caller_tenant_id=_tenant(request))
     return {"restored": sid}
+
+
+@harness.get("/snapshot/{sid}", tags=["Admin"])
+def harness_snapshot_read(request: Request, sid: str):
+    """Read a captured snapshot. Tenant-scoped — other tenants get 404."""
+    body = db.get_snapshot(sid, caller_tenant_id=_tenant(request))
+    if body is None:
+        raise not_found(f"snapshot {sid}")
+    return body
 
 
 @harness.post("/seed", tags=["Admin"])
