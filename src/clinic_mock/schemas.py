@@ -52,6 +52,16 @@ class PatientCreate(BaseModel):
     verify: PatientVerify | None = None
 
 
+class PatientRegistrationCreate(BaseModel):
+    """Body for the public patient registration endpoint."""
+
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    phone: Phone
+    dob: IsoDate
+    address: str = Field(min_length=1, max_length=255)
+
+
 class PatientUpdate(BaseModel):
     """Body for PATCH /_harness/patients/{id} — all fields optional."""
 

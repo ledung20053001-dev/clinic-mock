@@ -37,7 +37,9 @@ from clinic_mock.schemas import (
     CancelRequest,
     Patient,
     PatientCreate,
+    PatientRegistrationCreate,
     PatientUpdate,
+    PatientVerify,
     RescheduleRequest,
     Slot,
     TransferRequest,
@@ -193,6 +195,66 @@ def find_patients(
     body = {"data": page, "next_cursor": next_cursor, "has_more": has_more}
     _record_writelog_read("find_patients", request, body=body)
     return body
+
+
+@v1.post("/patients", status_code=status.HTTP_201_CREATED, tags=["Patients"])
+def register_patient(
+    request: Request,
+    body: PatientRegistrationCreate,
+    headers: Annotated[WriteHeaders, Depends(write_headers)],
+):
+    """Create a patient in the authenticated tenant."""
+
+    tenant = _tenant(request)
+    payload = body.model_dump()
+    if headers.idempotency_key:
+        replay = _idempotent_check(
+            headers.idempotency_key, "POST /v1/patients", payload
+        )
+        if replay is not None:
+            return Response(
+                content=json.dumps(replay["body"]),
+                status_code=replay["status"],
+                headers={
+                    "Idempotent-Replayed": "true",
+                    "Content-Type": "application/json",
+                },
+            )
+
+    first_name = body.first_name.strip()
+    last_name = body.last_name.strip()
+    address = body.address.strip()
+    if not first_name or not last_name or not address:
+        raise validation_error("first_name, last_name and address must not be blank.")
+    if any(
+        patient.tenant_id == tenant and patient.phone == body.phone
+        for patient in db.patients.values()
+    ):
+        raise conflict(
+            "PATIENT_PHONE_EXISTS",
+            "A patient with this phone already exists in the tenant.",
+        )
+
+    patient = Patient(
+        patient_id=db.new_id("p"),
+        tenant_id=tenant,
+        display_name=f"{first_name} {last_name[0]}.",
+        phone=body.phone,
+        dob=body.dob,
+        address=address,
+        verify=PatientVerify(full_name=f"{last_name} {first_name}", dob=body.dob),
+    )
+    db.patients[patient.patient_id] = patient
+    response_body = patient.model_dump()
+    if headers.idempotency_key:
+        _idempotent_store(
+            headers.idempotency_key,
+            "POST /v1/patients",
+            payload,
+            status.HTTP_201_CREATED,
+            response_body,
+        )
+    return response_body
 
 
 @v1.get("/patients/directory", tags=["Patients"])
