@@ -39,18 +39,10 @@ class Patient(BaseModel):
     display_name: str
     phone: Phone
     dob: IsoDate
-    address: str | None = Field(default=None, max_length=255)
     verify: PatientVerify | None = None
 
 
 class PatientCreate(BaseModel):
-<<<<<<< HEAD
-    first_name: str = Field(min_length=1, max_length=100)
-    last_name: str = Field(min_length=1, max_length=100)
-    phone: Phone
-    dob: IsoDate
-    address: str = Field(min_length=1, max_length=255)
-=======
     """Body for POST /_harness/patients — server generates the patient_id."""
 
     display_name: str
@@ -66,7 +58,6 @@ class PatientUpdate(BaseModel):
     phone: Phone | None = None
     dob: IsoDate | None = None
     verify: PatientVerify | None = None
->>>>>>> 11e35afaadf3388e8f0748a9ec9ab0132b11652a
 
 
 class Slot(BaseModel):
@@ -76,8 +67,6 @@ class Slot(BaseModel):
     start_time: IsoDateTime
     end_time: IsoDateTime
     provider_id: str
-    provider_name: str
-    department: str
 
 
 # ----- appointment -----
@@ -136,8 +125,7 @@ class Appointment(BaseModel):
     slot_id: str = Field(exclude=True)
     # `provider_id` is server-side state used to reconstruct the released Slot
     # on reschedule; never returned (Listing 3 omits it).
-    provider_id: str
-    provider_name: str | None = None
+    provider_id: str = Field(exclude=True)
     status: AppointmentStatus
     clinic_id: str
     starts_at: IsoDateTime

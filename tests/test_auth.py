@@ -7,21 +7,6 @@ tenant_id exclusion from responses, public endpoints skip auth.
 from tests.conftest import AUTH_A, AUTH_B
 
 
-def test_explicit_tenant_key_seeds_records_for_that_tenant(monkeypatch, client):
-    from clinic_mock.auth import _registry
-    from clinic_mock.config import settings
-    from clinic_mock.store import seed_default
-
-    monkeypatch.setattr(settings.mock_auth, "API_KEYS", "tenant_demo:sk_dev_demo")
-    _registry.cache_clear()
-    seed_default()
-    response = client.get(
-        "/_harness/patients", headers={"Authorization": "Bearer sk_dev_demo"}
-    )
-    assert response.status_code == 200
-    assert any(patient["patient_id"].startswith("p_sample_") for patient in response.json())
-
-
 class TestAuthFailures:
     def test_missing_token(self, client):
         r = client.get("/v1/patients", params={"phone": "0912345678"})

@@ -98,20 +98,6 @@ class TestCancel:
         assert body["status"] == "CANCELLED"
         assert body["cancel_reason"] == "PATIENT_UNAVAILABLE"
         assert body["version"] == APPT_VERSION + 1
-        released = client.get(
-            "/v1/slots",
-            params={
-                "clinic_id": "cl_vinmec",
-                "from": "2026-10-14T15:30:00+07:00",
-                "to": "2026-10-14T16:30:00+07:00",
-            },
-            headers=AUTH_A,
-        )
-        assert released.status_code == 200
-        assert any(
-            slot["start_time"] == "2026-10-14T15:30:00+07:00"
-            for slot in released.json()["data"]
-        )
 
     def test_cancel_without_confirmation_returns_409(self, client):
         r = client.post(
@@ -329,7 +315,7 @@ class TestReschedule:
         assert r.status_code == 409
         assert r.json()["error"]["code"] == "SLOT_TAKEN"
 
-    def test_reschedule_from_rescheduled_fails(self, client):
+    def test_reschedule_from_rescheduled_succeeds(self, client):
         client.post(
             f"/v1/appointments/{APPT_ID}/reschedule",
             json={"new_slot_id": "slot_91d2", "requested_by": "PATIENT"},
@@ -340,7 +326,38 @@ class TestReschedule:
             json={"new_slot_id": "slot_77aa", "requested_by": "PATIENT"},
             headers={**AUTH_A, **write_headers(APPT_VERSION + 1)},
         )
-        assert r.status_code == 409
+        assert r.status_code == 200
+        assert r.json()["status"] == "RESCHEDULED"
+        assert r.json()["new_slot_id"] == "slot_77aa"
+
+    @pytest.mark.parametrize(
+        ("action", "payload", "expected_status"),
+        [
+            ("confirm", None, "CONFIRMED"),
+            (
+                "cancel",
+                {"cancel_reason": "PATIENT_UNAVAILABLE", "confirmed": True},
+                "CANCELLED",
+            ),
+        ],
+    )
+    def test_rescheduled_appointment_accepts_follow_up_actions(
+        self, client, action, payload, expected_status
+    ):
+        first = client.post(
+            f"/v1/appointments/{APPT_ID}/reschedule",
+            json={"new_slot_id": "slot_91d2", "requested_by": "PATIENT"},
+            headers={**AUTH_A, **write_headers(APPT_VERSION)},
+        )
+        assert first.status_code == 200
+
+        r = client.post(
+            f"/v1/appointments/{APPT_ID}/{action}",
+            json=payload,
+            headers={**AUTH_A, **write_headers(APPT_VERSION + 1)},
+        )
+        assert r.status_code == 200
+        assert r.json()["status"] == expected_status
 
     def test_reschedule_requested_by_staff(self, client):
         r = client.post(

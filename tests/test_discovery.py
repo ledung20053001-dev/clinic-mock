@@ -81,8 +81,6 @@ class TestListSlots:
             assert "start_time" in s
             assert "end_time" in s
             assert "provider_id" in s
-            assert s["provider_name"].startswith("Bác sĩ ")
-            assert s["department"]
 
     def test_canonical_slot_visible(self, client):
         r = client.get(
