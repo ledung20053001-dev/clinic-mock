@@ -1,0 +1,35 @@
+[
+  {
+    "slot_id": "s_987",
+    "clinic_id": "c_001",
+    "start_time": "2026-09-15T09:00:00Z",
+    "end_time": "2026-09-15T09:30:00Z",
+    "provider_id": "pr_456",
+    "note": "Upstream one-off slot on 2026-09-15 (UTC)."
+  },
+  {
+    "slot_id": "s_988",
+    "clinic_id": "c_001",
+    "start_time": "2026-09-15T09:30:00Z",
+    "end_time": "2026-09-15T10:00:00Z",
+    "provider_id": "pr_456",
+    "note": "Upstream one-off slot on 2026-09-15 (UTC)."
+  },
+  {
+    "slot_id": "s_1024",
+    "clinic_id": "c_002",
+    "start_time": "2026-09-15T11:00:00Z",
+    "end_time": "2026-09-15T11:30:00Z",
+    "provider_id": "pr_789",
+    "note": "Upstream one-off slot on 2026-09-15 (UTC)."
+  },
+  {
+    "slot_id": "slot_91d2",
+    "clinic_id": "cl_vinmec",
+    "start_time": "2026-10-14T15:00:00+07:00",
+    "end_time": "2026-10-14T15:30:00+07:00",
+    "provider_id": "pr_vinmec_1",
+    "scope": "shared",
+    "note": "Contract slot (Listing 4): the one the Appendix A reschedule picks."
+  }
+]

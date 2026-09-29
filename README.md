@@ -78,6 +78,39 @@ opaque.
 
 ---
 
+## Seed data
+
+Seed data is loaded from `src/clinic_mock/data`. The `base` profile creates
+patients and appointments for every configured API key and generates open
+slots from provider schedules for a rolling period starting on the current
+date.
+
+```env
+# Leave empty to use src/clinic_mock/data
+MOCK_SEED_DATA_DIR=
+MOCK_SEED_PROFILES=base
+MOCK_SEED_HORIZON_DAYS=21
+```
+
+Use `base,demo` when you also want the shared call-list fixtures and more
+near-term availability at Vinmec Times City:
+
+```env
+MOCK_SEED_PROFILES=base,demo
+```
+
+Validate the configured JSON dataset and preview today's generated counts:
+
+```bash
+python -m clinic_mock.dataset
+```
+
+The validator checks duplicate IDs and phone numbers, references between
+clinics, departments, providers, schedules, slots and appointments, provider
+working hours, and overlapping provider appointments.
+
+---
+
 ## Observability
 
 When `LANGFUSE_TRACES_ENABLED=true` (default) and

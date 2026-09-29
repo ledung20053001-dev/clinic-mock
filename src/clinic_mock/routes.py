@@ -44,7 +44,13 @@ from clinic_mock.schemas import (
     UnreachableRequest,
     WriteHeaders,
 )
-from clinic_mock.store import CANONICAL_TENANT, db, now_iso, seed_default
+from clinic_mock.store import (
+    CANONICAL_TENANT,
+    db,
+    now_iso,
+    provider_metadata,
+    seed_default,
+)
 
 
 def _tenant(request: Request) -> str:
@@ -452,6 +458,17 @@ def cancel_appointment(
         }
     )
     db.appointments[appt_id] = updated
+    # Cancellation releases the consumed slot so another patient can book it.
+    db.slots[appt.slot_id] = Slot(
+        slot_id=appt.slot_id,
+        tenant_id=appt.tenant_id,
+        clinic_id=appt.clinic_id,
+        start_time=appt.starts_at,
+        end_time=appt.ends_at,
+        provider_id=appt.provider_id,
+        provider_name=appt.provider_name or provider_metadata(appt.provider_id)["name"],
+        department=appt.department,
+    )
     if headers.idempotency_key:
         _idempotent_store(
             headers.idempotency_key,
@@ -535,6 +552,8 @@ def reschedule_appointment(
             start_time=appt.starts_at,
             end_time=appt.ends_at,
             provider_id=appt.provider_id,
+            provider_name=appt.provider_name or provider_metadata(appt.provider_id)["name"],
+            department=appt.department,
         )
     db.slots.pop(new_slot.slot_id, None)
 
@@ -543,10 +562,12 @@ def reschedule_appointment(
         update={
             "slot_id": new_slot.slot_id,
             "provider_id": new_slot.provider_id,
+            "provider_name": new_slot.provider_name,
             "status": "RESCHEDULED",
             "clinic_id": new_slot.clinic_id,
             "starts_at": new_slot.start_time,
             "ends_at": new_slot.end_time,
+            "department": new_slot.department,
             "new_slot_id": new_slot.slot_id,
             "version": new_version,
         }

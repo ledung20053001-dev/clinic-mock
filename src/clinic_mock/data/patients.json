@@ -1,0 +1,386 @@
+[
+  {
+    "id": "pt_3391",
+    "display_name": "N. V. A.",
+    "phone": "0912345600",
+    "dob": "1978-03-14",
+    "address": "Hoàn Kiếm, Hà Nội",
+    "verify": {"full_name": "Nguyễn Văn An", "dob": "1978-03-14"},
+    "scope": "shared",
+    "note": "Contract patient (Listing 3), shared by every API key."
+  },
+  {
+    "id": "p_12345",
+    "display_name": "Mai N.",
+    "phone": "0912345678",
+    "dob": "1985-04-12",
+    "address": "Hai Bà Trưng, Hà Nội",
+    "verify": {"full_name": "Nguyễn Thị Mai", "dob": "1985-04-12"}
+  },
+  {
+    "id": "p_67890",
+    "display_name": "Nam T.",
+    "phone": "0987654321",
+    "dob": "1972-11-03",
+    "address": "Cầu Giấy, Hà Nội",
+    "verify": {"full_name": "Trần Văn Nam", "dob": "1972-11-03"}
+  },
+  {
+    "id": "p_sample_01",
+    "display_name": "An L.",
+    "phone": "0901234567",
+    "dob": "1990-05-20",
+    "address": "Đống Đa, Hà Nội",
+    "verify": {"full_name": "Lê Văn An", "dob": "1990-05-20"}
+  },
+  {
+    "id": "p_sample_02",
+    "display_name": "Dũng L.",
+    "phone": "0862619836",
+    "dob": "2005-01-30",
+    "address": "Thanh Xuân, Hà Nội",
+    "verify": {"full_name": "Lê Công Dũng", "dob": "2005-01-30"}
+  },
+  {
+    "id": "p_sample_03",
+    "display_name": "Hà P.",
+    "phone": "0321456789",
+    "dob": "1996-08-15",
+    "address": "Hoàng Mai, Hà Nội",
+    "verify": {"full_name": "Phạm Thu Hà", "dob": "1996-08-15"}
+  },
+  {
+    "id": "p_sample_04",
+    "display_name": "Minh H.",
+    "phone": "0387654321",
+    "dob": "1988-12-09",
+    "address": "Long Biên, Hà Nội",
+    "verify": {"full_name": "Hoàng Quang Minh", "dob": "1988-12-09"}
+  },
+  {
+    "id": "p_sample_05",
+    "display_name": "Lan V.",
+    "phone": "0702345678",
+    "dob": "1993-03-24",
+    "address": "Nam Từ Liêm, Hà Nội",
+    "verify": {"full_name": "Vũ Ngọc Lan", "dob": "1993-03-24"}
+  },
+  {
+    "id": "p_sample_06",
+    "display_name": "Hùng Đ.",
+    "phone": "0793456789",
+    "dob": "1982-07-11",
+    "address": "Hà Đông, Hà Nội",
+    "verify": {"full_name": "Đặng Mạnh Hùng", "dob": "1982-07-11"}
+  },
+  {
+    "id": "p_sample_07",
+    "display_name": "Trang B.",
+    "phone": "0834567890",
+    "dob": "2000-10-02",
+    "address": "Ba Đình, Hà Nội",
+    "verify": {"full_name": "Bùi Thu Trang", "dob": "2000-10-02"}
+  },
+  {
+    "id": "p_sample_08",
+    "display_name": "Khoa N.",
+    "phone": "0895678901",
+    "dob": "1999-06-18",
+    "address": "Tây Hồ, Hà Nội",
+    "verify": {"full_name": "Nguyễn Minh Khoa", "dob": "1999-06-18"}
+  },
+  {
+    "id": "p_sample_09",
+    "display_name": "Hương Đ.",
+    "phone": "0336123456",
+    "dob": "1987-02-14",
+    "address": "Bắc Từ Liêm, Hà Nội",
+    "verify": {"full_name": "Đỗ Lan Hương", "dob": "1987-02-14"}
+  },
+  {
+    "id": "p_sample_10",
+    "display_name": "Tuấn P.",
+    "phone": "0347234567",
+    "dob": "1991-09-21",
+    "address": "Gia Lâm, Hà Nội",
+    "verify": {"full_name": "Phan Anh Tuấn", "dob": "1991-09-21"}
+  },
+  {
+    "id": "p_sample_11",
+    "display_name": "Mai T.",
+    "phone": "0358345678",
+    "dob": "1984-05-08",
+    "address": "Đông Anh, Hà Nội",
+    "verify": {"full_name": "Trương Ngọc Mai", "dob": "1984-05-08"}
+  },
+  {
+    "id": "p_sample_12",
+    "display_name": "Long N.",
+    "phone": "0369456789",
+    "dob": "1997-11-19",
+    "address": "Sóc Sơn, Hà Nội",
+    "verify": {"full_name": "Ngô Hoàng Long", "dob": "1997-11-19"}
+  },
+  {
+    "id": "p_sample_13",
+    "display_name": "Yến H.",
+    "phone": "0371567890",
+    "dob": "1994-04-27",
+    "address": "Thanh Trì, Hà Nội",
+    "verify": {"full_name": "Hồ Hải Yến", "dob": "1994-04-27"}
+  },
+  {
+    "id": "p_sample_14",
+    "display_name": "Sơn D.",
+    "phone": "0382678901",
+    "dob": "1989-01-06",
+    "address": "Mê Linh, Hà Nội",
+    "verify": {"full_name": "Dương Minh Sơn", "dob": "1989-01-06"}
+  },
+  {
+    "id": "p_sample_15",
+    "display_name": "Thảo N.",
+    "phone": "0393789012",
+    "dob": "2001-07-12",
+    "address": "Hoài Đức, Hà Nội",
+    "verify": {"full_name": "Nguyễn Phương Thảo", "dob": "2001-07-12"}
+  },
+  {
+    "id": "p_sample_16",
+    "display_name": "Đức T.",
+    "phone": "0524890123",
+    "dob": "1986-10-30",
+    "address": "Quốc Oai, Hà Nội",
+    "verify": {"full_name": "Trần Minh Đức", "dob": "1986-10-30"}
+  },
+  {
+    "id": "p_sample_17",
+    "display_name": "Linh L.",
+    "phone": "0565901234",
+    "dob": "1998-12-03",
+    "address": "Chương Mỹ, Hà Nội",
+    "verify": {"full_name": "Lê Khánh Linh", "dob": "1998-12-03"}
+  },
+  {
+    "id": "p_sample_18",
+    "display_name": "Nam N.",
+    "phone": "0978123401",
+    "dob": "1983-03-17",
+    "address": "Long Biên, Hà Nội",
+    "verify": {"full_name": "Nguyễn Hoàng Nam", "dob": "1983-03-17"}
+  },
+  {
+    "id": "p_sample_19",
+    "display_name": "Châu P.",
+    "phone": "0978123402",
+    "dob": "1995-08-22",
+    "address": "Long Biên, Hà Nội",
+    "verify": {"full_name": "Phạm Minh Châu", "dob": "1995-08-22"}
+  },
+  {
+    "id": "p_sample_20",
+    "display_name": "Hải Đ.",
+    "phone": "0978123403",
+    "dob": "1966-11-30",
+    "address": "Gia Lâm, Hà Nội",
+    "verify": {"full_name": "Đoàn Thị Hải", "dob": "1966-11-30"}
+  },
+  {
+    "id": "p_sample_21",
+    "display_name": "Vinh L.",
+    "phone": "0978123404",
+    "dob": "1990-01-15",
+    "address": "Nam Từ Liêm, Hà Nội",
+    "verify": {"full_name": "Lý Quang Vinh", "dob": "1990-01-15"}
+  },
+  {
+    "id": "p_sample_22",
+    "display_name": "Mai T.",
+    "phone": "0978123405",
+    "dob": "1987-06-06",
+    "address": "Bắc Từ Liêm, Hà Nội",
+    "verify": {"full_name": "Tô Thanh Mai", "dob": "1987-06-06"}
+  },
+  {
+    "id": "p_sample_23",
+    "display_name": "Anh C.",
+    "phone": "0978123406",
+    "dob": "2016-04-09",
+    "address": "Hoàn Kiếm, Hà Nội",
+    "verify": {"full_name": "Cao Đức Anh", "dob": "2016-04-09"},
+    "note": "A child: the phone is a parent's, the identity is the child's."
+  },
+  {
+    "id": "p_sample_24",
+    "display_name": "Ngân H.",
+    "phone": "0978123407",
+    "dob": "1975-10-25",
+    "address": "Cầu Giấy, Hà Nội",
+    "verify": {"full_name": "Hoàng Thị Ngân", "dob": "1975-10-25"}
+  },
+  {
+    "id": "p_sample_25",
+    "display_name": "Trí V.",
+    "phone": "0908123408",
+    "dob": "1992-02-11",
+    "address": "Bình Thạnh, TP. Hồ Chí Minh",
+    "verify": {"full_name": "Võ Minh Trí", "dob": "1992-02-11"}
+  },
+  {
+    "id": "p_sample_26",
+    "display_name": "Bích N.",
+    "phone": "0908123409",
+    "dob": "1989-07-19",
+    "address": "Quận 1, TP. Hồ Chí Minh",
+    "verify": {"full_name": "Nguyễn Ngọc Bích", "dob": "1989-07-19"}
+  },
+  {
+    "id": "p_sample_27",
+    "display_name": "Việt T.",
+    "phone": "0908123410",
+    "dob": "1970-12-01",
+    "address": "Thủ Đức, TP. Hồ Chí Minh",
+    "verify": {"full_name": "Trần Quốc Việt", "dob": "1970-12-01"}
+  },
+  {
+    "id": "p_sample_28",
+    "display_name": "Oanh L.",
+    "phone": "0908123411",
+    "dob": "1998-05-28",
+    "address": "Quận 7, TP. Hồ Chí Minh",
+    "verify": {"full_name": "Lê Thị Kim Oanh", "dob": "1998-05-28"}
+  },
+  {
+    "id": "p_sample_29",
+    "display_name": "An N.",
+    "phone": "0978123412",
+    "dob": "1985-09-02",
+    "address": "Đống Đa, Hà Nội",
+    "verify": {"full_name": "Nguyễn Văn An", "dob": "1985-09-02"},
+    "note": "Namesake of the contract patient pt_3391 with another birth date (SF-01)."
+  },
+  {
+    "id": "p_sample_30",
+    "display_name": "Lệ P.",
+    "phone": "0978123413",
+    "dob": "1961-03-08",
+    "address": "Hà Đông, Hà Nội",
+    "verify": {"full_name": "Phùng Thị Lệ", "dob": "1961-03-08"}
+  },
+  {
+    "id": "p_sample_31",
+    "display_name": "Bảo Đ.",
+    "phone": "0978123414",
+    "dob": "2003-09-14",
+    "address": "Thanh Xuân, Hà Nội",
+    "verify": {"full_name": "Đinh Gia Bảo", "dob": "2003-09-14"}
+  },
+  {
+    "id": "p_sample_32",
+    "display_name": "Quân H.",
+    "phone": "0978123415",
+    "dob": "1994-12-24",
+    "address": "Tây Hồ, Hà Nội",
+    "verify": {"full_name": "Hà Minh Quân", "dob": "1994-12-24"}
+  },
+  {
+    "id": "p_sample_33",
+    "display_name": "Thanh K.",
+    "phone": "0978123416",
+    "dob": "1980-04-04",
+    "address": "Hoàng Mai, Hà Nội",
+    "verify": {"full_name": "Kim Thị Thanh", "dob": "1980-04-04"}
+  },
+  {
+    "id": "pt_demo_2",
+    "display_name": "T. T. B.",
+    "phone": "0912345601",
+    "dob": "1985-04-12",
+    "address": "Đống Đa, Hà Nội",
+    "verify": {"full_name": "Trần Thị Bình", "dob": "1985-04-12"},
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "id": "pt_demo_3",
+    "display_name": "L. H. C.",
+    "phone": "0912345602",
+    "dob": "1990-07-21",
+    "address": "Ba Đình, Hà Nội",
+    "verify": {"full_name": "Lê Hoàng Cường", "dob": "1990-07-21"},
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "id": "pt_demo_4",
+    "display_name": "P. T. D.",
+    "phone": "0912345603",
+    "dob": "1995-11-03",
+    "address": "Tây Hồ, Hà Nội",
+    "verify": {"full_name": "Phạm Thu Dung", "dob": "1995-11-03"},
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "id": "pt_demo_5",
+    "display_name": "Đ. M. H.",
+    "phone": "0912345604",
+    "dob": "1968-01-30",
+    "address": "Hà Đông, Hà Nội",
+    "verify": {"full_name": "Đỗ Minh Hải", "dob": "1968-01-30"},
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "id": "pt_demo_6",
+    "display_name": "N. M. K.",
+    "phone": "0912345606",
+    "dob": "2019-06-01",
+    "address": "Hai Bà Trưng, Hà Nội",
+    "verify": {"full_name": "Nguyễn Minh Khang", "dob": "2019-06-01"},
+    "scope": "shared",
+    "profile": "demo",
+    "note": "A child: the phone is a parent's, the identity is the child's."
+  },
+  {
+    "id": "pt_demo_7",
+    "display_name": "V. T. H.",
+    "phone": "0912345607",
+    "dob": "1958-09-09",
+    "address": "Hoàng Mai, Hà Nội",
+    "verify": {"full_name": "Vũ Thị Hồng", "dob": "1958-09-09"},
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "id": "pt_demo_8",
+    "display_name": "B. V. T.",
+    "phone": "0912345608",
+    "dob": "1979-02-27",
+    "address": "Long Biên, Hà Nội",
+    "verify": {"full_name": "Bùi Văn Toàn", "dob": "1979-02-27"},
+    "scope": "shared",
+    "profile": "demo"
+  },
+  {
+    "id": "pt_demo_9",
+    "display_name": "T. T. B.",
+    "phone": "0912345609",
+    "dob": "1992-11-20",
+    "address": "Cầu Giấy, Hà Nội",
+    "verify": {"full_name": "Trần Thị Bình", "dob": "1992-11-20"},
+    "scope": "shared",
+    "profile": "demo",
+    "note": "Namesake of pt_demo_2 with another birth date (SF-01)."
+  },
+  {
+    "id": "pt_demo_10",
+    "display_name": "L. T. T.",
+    "phone": "0912345610",
+    "dob": "2001-12-05",
+    "address": "Thanh Xuân, Hà Nội",
+    "verify": {"full_name": "Lê Thị Thu", "dob": "2001-12-05"},
+    "scope": "shared",
+    "profile": "demo"
+  }
+]

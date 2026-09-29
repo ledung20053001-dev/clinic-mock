@@ -39,6 +39,7 @@ class Patient(BaseModel):
     display_name: str
     phone: Phone
     dob: IsoDate
+    address: str | None = Field(default=None, max_length=255)
     verify: PatientVerify | None = None
 
 
@@ -67,6 +68,8 @@ class Slot(BaseModel):
     start_time: IsoDateTime
     end_time: IsoDateTime
     provider_id: str
+    provider_name: str = ""
+    department: str = ""
 
 
 # ----- appointment -----
@@ -126,6 +129,7 @@ class Appointment(BaseModel):
     # `provider_id` is server-side state used to reconstruct the released Slot
     # on reschedule; never returned (Listing 3 omits it).
     provider_id: str = Field(exclude=True)
+    provider_name: str | None = None
     status: AppointmentStatus
     clinic_id: str
     starts_at: IsoDateTime
