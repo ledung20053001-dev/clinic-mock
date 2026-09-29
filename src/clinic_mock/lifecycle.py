@@ -6,10 +6,10 @@ from clinic_mock.errors import conflict
 from clinic_mock.schemas import AppointmentStatus
 
 APPOINTMENT_TRANSITIONS = {
-    "confirm": {"SCHEDULED", "BOOKED", "CONFIRMED"},
-    "cancel": {"SCHEDULED", "BOOKED", "CONFIRMED"},
+    "confirm": {"SCHEDULED", "BOOKED", "CONFIRMED", "RESCHEDULED"},
+    "cancel": {"SCHEDULED", "BOOKED", "CONFIRMED", "RESCHEDULED"},
     "transfer": {"SCHEDULED", "BOOKED", "CONFIRMED"},
-    "reschedule": {"SCHEDULED", "BOOKED", "CONFIRMED"},
+    "reschedule": {"SCHEDULED", "BOOKED", "CONFIRMED", "RESCHEDULED"},
     # §2.2 — UNREACHABLE set when no-answer / voicemail / line busy; bumps
     # attempt_count via the route.
     "unreachable": {"SCHEDULED", "BOOKED"},

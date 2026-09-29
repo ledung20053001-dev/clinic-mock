@@ -189,6 +189,54 @@ def find_patients(
     return body
 
 
+@v1.get("/patients/directory", tags=["Patients"])
+def patient_directory(
+    request: Request,
+    cursor: str | None = None,
+    limit: int = 25,
+):
+    """List selectable portal profiles visible to the authenticated tenant."""
+
+    tenants = _visible_tenants(_tenant(request))
+    matched = [
+        patient.model_dump()
+        for patient in db.patients.values()
+        if patient.tenant_id in tenants
+    ]
+    matched.sort(
+        key=lambda patient: (
+            (patient.get("verify") or {}).get("full_name") or patient["display_name"],
+            patient["patient_id"],
+        )
+    )
+    page, next_cursor, has_more = paginate(matched, cursor, limit)
+    return {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+
+
+@v1.get("/patients/{patient_id}/appointments", tags=["Appointments"])
+def list_patient_appointments(
+    request: Request,
+    patient_id: str,
+    cursor: str | None = None,
+    limit: int = 25,
+):
+    """List appointments owned by one visible patient."""
+
+    tenants = _visible_tenants(_tenant(request))
+    patient = db.patients.get(patient_id)
+    if not patient or patient.tenant_id not in tenants:
+        raise not_found(f"patient {patient_id}")
+    matched = [
+        appointment.model_dump()
+        for appointment in db.appointments.values()
+        if appointment.tenant_id in tenants
+        and appointment.patient.patient_id == patient_id
+    ]
+    matched.sort(key=lambda appointment: appointment["starts_at"], reverse=True)
+    page, next_cursor, has_more = paginate(matched, cursor, limit)
+    return {"data": page, "next_cursor": next_cursor, "has_more": has_more}
+
+
 @v1.get("/slots", tags=["Discovery"])
 def list_slots(
     request: Request,
