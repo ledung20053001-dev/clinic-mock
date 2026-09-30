@@ -40,6 +40,9 @@ class TestCreateAppointment:
         assert "appointment_id" in body
         assert "patient" in body
         assert body["patient"]["patient_id"] == pid
+        assert body["provider_name"] == "Bác sĩ Nguyễn Văn An"
+        assert body["department"] == "Nội tổng quát"
+        assert "provider_id" not in body
 
     def test_create_consumes_slot(self, client):
         pid = _tenant_a_patient(client)
