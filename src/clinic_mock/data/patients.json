@@ -5,7 +5,7 @@
     "phone": "0912345600",
     "dob": "1978-03-14",
     "address": "Hoàn Kiếm, Hà Nội",
-    "verify": {"full_name": "Nguyễn Văn An", "dob": "1978-03-14"},
+    "verify": {"full_name": "Nguyễn Văn A", "dob": "1978-03-14"},
     "scope": "shared",
     "note": "Contract patient (Listing 3), shared by every API key."
   },
