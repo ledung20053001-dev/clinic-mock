@@ -233,19 +233,21 @@ def test_the_demo_profile_adds_a_shared_call_list_and_contract_clinic_slots(clie
     assert "slot_91d2" in db.slots
 
 
-def test_contract_rows_win_over_a_schedule_on_the_same_day():
-    """slot_91d2 (15:00) and apt_00417 (15:30) stay the only bookings at their times."""
+def test_the_contract_day_keeps_slot_91d2_as_the_only_offer():
+    """On 2026-10-14 cl_vinmec offers only slot_91d2, as upstream, even with demo on."""
 
     seed_default(profiles={"demo"}, today=date(2026, 10, 1))
 
-    day = {
-        s.start_time: s.slot_id
-        for s in db.slots.values()
-        if s.provider_id == "pr_vinmec_1" and s.start_time.startswith("2026-10-14")
+    open_on = {
+        day: [
+            s.slot_id
+            for s in db.slots.values()
+            if s.clinic_id == "cl_vinmec" and s.start_time.startswith(day)
+        ]
+        for day in ("2026-10-13", "2026-10-14", "2026-10-15")
     }
-    assert day["2026-10-14T15:00:00+07:00"] == "slot_91d2"
-    assert "2026-10-14T15:30:00+07:00" not in day
-    assert "2026-10-14T16:00:00+07:00" in day
+    assert open_on["2026-10-14"] == ["slot_91d2"]
+    assert open_on["2026-10-13"] and open_on["2026-10-15"]
 
 
 def test_an_unknown_profile_is_an_error():

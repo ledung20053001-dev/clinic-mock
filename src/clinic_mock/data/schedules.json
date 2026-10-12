@@ -172,7 +172,17 @@
     "sessions": [["08:00", "11:30"], ["13:30", "16:30"]],
     "scope": "shared",
     "profile": "demo",
-    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Off in the stock seed, which keeps slot_91d2 as the clinic's only slot."
+    "valid_to": "2026-10-13",
+    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Paused on 2026-10-14 so slot_91d2 stays the clinic's only open slot that day, as upstream (Listing 4); off entirely in the stock seed."
+  },
+  {
+    "provider_id": "pr_vinmec_1",
+    "weekdays": [0, 1, 2, 3, 4, 5],
+    "sessions": [["08:00", "11:30"], ["13:30", "16:30"]],
+    "scope": "shared",
+    "profile": "demo",
+    "valid_from": "2026-10-15",
+    "note": "Demo profile: resumes the cl_vinmec availability after the contract day 2026-10-14."
   },
   {
     "provider_id": "pr_vinmec_2",
@@ -180,7 +190,17 @@
     "sessions": [["07:30", "11:30"], ["13:30", "17:00"]],
     "scope": "shared",
     "profile": "demo",
-    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Off in the stock seed, which keeps slot_91d2 as the clinic's only slot."
+    "valid_to": "2026-10-13",
+    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Paused on 2026-10-14 so slot_91d2 stays the clinic's only open slot that day, as upstream (Listing 4); off entirely in the stock seed."
+  },
+  {
+    "provider_id": "pr_vinmec_2",
+    "weekdays": [0, 1, 2, 3, 4, 5],
+    "sessions": [["07:30", "11:30"], ["13:30", "17:00"]],
+    "scope": "shared",
+    "profile": "demo",
+    "valid_from": "2026-10-15",
+    "note": "Demo profile: resumes the cl_vinmec availability after the contract day 2026-10-14."
   },
   {
     "provider_id": "pr_vinmec_3",
@@ -188,7 +208,17 @@
     "sessions": [["08:00", "11:30"], ["14:00", "17:00"]],
     "scope": "shared",
     "profile": "demo",
-    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Off in the stock seed, which keeps slot_91d2 as the clinic's only slot."
+    "valid_to": "2026-10-13",
+    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Paused on 2026-10-14 so slot_91d2 stays the clinic's only open slot that day, as upstream (Listing 4); off entirely in the stock seed."
+  },
+  {
+    "provider_id": "pr_vinmec_3",
+    "weekdays": [0, 1, 2, 3, 4, 5],
+    "sessions": [["08:00", "11:30"], ["14:00", "17:00"]],
+    "scope": "shared",
+    "profile": "demo",
+    "valid_from": "2026-10-15",
+    "note": "Demo profile: resumes the cl_vinmec availability after the contract day 2026-10-14."
   },
   {
     "provider_id": "pr_vinmec_4",
@@ -196,7 +226,17 @@
     "sessions": [["08:00", "11:30"], ["13:30", "16:30"]],
     "scope": "shared",
     "profile": "demo",
-    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Off in the stock seed, which keeps slot_91d2 as the clinic's only slot."
+    "valid_to": "2026-10-13",
+    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Paused on 2026-10-14 so slot_91d2 stays the clinic's only open slot that day, as upstream (Listing 4); off entirely in the stock seed."
+  },
+  {
+    "provider_id": "pr_vinmec_4",
+    "weekdays": [0, 1, 2, 3, 4],
+    "sessions": [["08:00", "11:30"], ["13:30", "16:30"]],
+    "scope": "shared",
+    "profile": "demo",
+    "valid_from": "2026-10-15",
+    "note": "Demo profile: resumes the cl_vinmec availability after the contract day 2026-10-14."
   },
   {
     "provider_id": "pr_vinmec_5",
@@ -204,7 +244,17 @@
     "sessions": [["08:00", "11:30"], ["13:30", "16:30"]],
     "scope": "shared",
     "profile": "demo",
-    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Off in the stock seed, which keeps slot_91d2 as the clinic's only slot."
+    "valid_to": "2026-10-13",
+    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Paused on 2026-10-14 so slot_91d2 stays the clinic's only open slot that day, as upstream (Listing 4); off entirely in the stock seed."
+  },
+  {
+    "provider_id": "pr_vinmec_5",
+    "weekdays": [0, 1, 2, 3, 4],
+    "sessions": [["08:00", "11:30"], ["13:30", "16:30"]],
+    "scope": "shared",
+    "profile": "demo",
+    "valid_from": "2026-10-15",
+    "note": "Demo profile: resumes the cl_vinmec availability after the contract day 2026-10-14."
   },
   {
     "provider_id": "pr_vinmec_6",
@@ -212,6 +262,16 @@
     "sessions": [["08:00", "11:30"], ["13:30", "16:00"]],
     "scope": "shared",
     "profile": "demo",
-    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Off in the stock seed, which keeps slot_91d2 as the clinic's only slot."
+    "valid_to": "2026-10-13",
+    "note": "Demo profile: near-term cl_vinmec availability for the callbot console, shared by every API key. Paused on 2026-10-14 so slot_91d2 stays the clinic's only open slot that day, as upstream (Listing 4); off entirely in the stock seed."
+  },
+  {
+    "provider_id": "pr_vinmec_6",
+    "weekdays": [1, 2, 3, 4, 5],
+    "sessions": [["08:00", "11:30"], ["13:30", "16:00"]],
+    "scope": "shared",
+    "profile": "demo",
+    "valid_from": "2026-10-15",
+    "note": "Demo profile: resumes the cl_vinmec availability after the contract day 2026-10-14."
   }
 ]
